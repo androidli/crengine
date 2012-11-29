@@ -847,14 +847,18 @@ public class Engine {
 					baseDir.mkdir();
 				}
 				if (baseDir.exists() && baseDir.canWrite()) {
-					File cacheDir = new File(baseDir, "cache");
-					if (cacheDir.exists() || cacheDir.mkdirs()) {
-						if (cacheDir.canWrite()) {
-							cacheDirName = cacheDir.getAbsolutePath();
-							CR3_SETTINGS_DIR_NAME = baseDir.getAbsolutePath(); 
-						}
-					}
+				    CR3_SETTINGS_DIR_NAME = baseDir.getAbsolutePath();
+
+				    //Cancel the creation of the "cache" may cause open file failed
+//					File cacheDir = new File(baseDir, "cache");
+//					if (cacheDir.exists() || cacheDir.mkdirs()) {
+//						if (cacheDir.canWrite()) {
+//							cacheDirName = cacheDir.getAbsolutePath();
+//							CR3_SETTINGS_DIR_NAME = baseDir.getAbsolutePath();
+//						}
+//					}
 				}
+				CR3_SETTINGS_DIR_NAME = baseDir.getAbsolutePath();
 			} else {
 				log.i(baseDir.toString() + " is read only");
 			}
