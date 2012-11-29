@@ -5015,7 +5015,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        if ( success ) {
 				log.v("loadDocumentInternal completed successfully");
 
+				hideLoadingDialog();
 				mIsLoadSuccess = true;
+				currentProgressPosition = -1;
 				
 				doc.requestRender();
 				
@@ -5264,7 +5266,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         		showLoadingDialog();
     		} else if (mInitialized && mCurrentPageInfo != null && mCurrentPageInfo.bitmap != null) {
         		log.d("onDraw() -- drawing page image");
-        		hideLoadingDialog();
 
         		if (currentAutoScrollAnimation != null) {
         			currentAutoScrollAnimation.draw(canvas);
@@ -6492,10 +6493,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private void showLoadingDialog()
 	{
-	    if (mDialogLoading == null) {
+	    if (mDialogLoading == null && !mIsLoadSuccess) {
 	        mDialogLoading = new DialogLoading(mActivity, getResources().getString(currentProgressTitle));
 	        mDialogLoading.show();
-	    } else if (!mDialogLoading.isShowing()) {
+	    } else if (!mDialogLoading.isShowing() && !mIsLoadSuccess) {
 	        mDialogLoading.show();
 	    }
 	}
