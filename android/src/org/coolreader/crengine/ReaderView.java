@@ -51,6 +51,7 @@ import com.onyx.android.sdk.ui.dialog.DialogReaderMenu;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.FontSizeProperty;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.LineSpacingProperty;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.RotationScreenProperty;
+import com.onyx.android.sdk.ui.util.BookmarkIcon;
 
 public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback, Settings {
 
@@ -6473,21 +6474,21 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	 * Drawing bookmark icon
 	 */
 	private void drawBookmarkIcon(Canvas canvas) {
-	    mBookmarkBitmap = android.graphics.BitmapFactory.decodeResource(getResources(), R.drawable.star_cancel);
+	    mBookmarkBitmap = BookmarkIcon.drawTriangle(false);
 	    if (doc != null && mBookInfo != null) {
 	        Bookmark bm = doc.getCurrentPageBookmark();
 	        for (int i = 0; i < mBookInfo.getBookmarkCount(); i++) {
 	            if (bm.getPosText().equals(mBookInfo.getBookmark(i).getPosText())) {
-	                mBookmarkBitmap = android.graphics.BitmapFactory.decodeResource(getResources(), R.drawable.star);
+	                mBookmarkBitmap = BookmarkIcon.drawTriangle(true);
 	                break;
 	            }
 	        }
 	    }
 
 	    Paint paint = new Paint();
-	    paint.setAlpha(150);
-	    mBookmarkX = ReaderView.this.getWidth() - 80;
-	    mBookmarkY = 15;
+	    paint.setAlpha(220);
+	    mBookmarkX = ReaderView.this.getWidth() - mBookmarkBitmap.getWidth();
+	    mBookmarkY = 22;
 	    canvas.drawBitmap(mBookmarkBitmap, mBookmarkX, mBookmarkY, paint);
 	}
 
