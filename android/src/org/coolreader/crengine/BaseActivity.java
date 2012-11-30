@@ -467,22 +467,23 @@ public class BaseActivity extends Activity implements Settings {
 
 	public void applyFullscreen( Window wnd )
 	{
-		if ( mFullscreen ) {
-			//mActivity.getWindow().requestFeature(Window.)
-			wnd.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
-			        WindowManager.LayoutParams.FLAG_FULLSCREEN );
-		} else {
-			wnd.setFlags(0, 
-			        WindowManager.LayoutParams.FLAG_FULLSCREEN );
-		}
+	    WindowManager.LayoutParams params = getWindow().getAttributes();
+	    if (mFullscreen) {
+	        params.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
+	    } else {
+	        params.flags &= (~WindowManager.LayoutParams.FLAG_FULLSCREEN);
+	    }
+	    getWindow().setAttributes(params);
+	    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+
 		setSystemUiVisibility();
 	}
 	public void setFullscreen( boolean fullscreen )
 	{
 		if ( mFullscreen!=fullscreen ) {
 			mFullscreen = fullscreen;
-			applyFullscreen( getWindow() );
 		}
+		applyFullscreen( getWindow() );
 	}
 	
 	private final static int SYSTEM_UI_FLAG_LOW_PROFILE = 1;
