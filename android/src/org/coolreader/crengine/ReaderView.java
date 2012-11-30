@@ -1682,15 +1682,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 						mBookInfo.setShortcutBookmark(shortcut, bm);
 					getSyncService().saveBookmark(mBookInfo.getFileInfo().getPathName(), bm, false);
 					mActivity.getDB().saveBookInfo(mBookInfo);
-					String s;
-					if ( shortcut==0 )
-						s = mActivity.getString(R.string.toast_position_bookmark_is_set);
-					else {
-						s = mActivity.getString(R.string.toast_shortcut_bookmark_is_set);
-						s.replace("$1", String.valueOf(shortcut));
-					}
 			        highlightBookmarks();
-					mActivity.showToast(s);
 			        scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
 				}
 			}
