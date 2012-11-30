@@ -858,6 +858,7 @@ public class Engine {
 //						}
 //					}
 				}
+				CR3_SETTINGS_DIR_NAME = baseDir.getAbsolutePath();
 			} else {
 				log.i(baseDir.toString() + " is read only");
 			}
