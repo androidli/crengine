@@ -2626,6 +2626,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 				mActivity.updateCurrentPositionStatus(fileInfo, bmk, props);
 			}
 		});
+
+		updateReaderMenuPage();
 	}
 	
 	public void doCommandFromBackgroundThread( final ReaderCommand cmd, final int param )
@@ -4169,6 +4171,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			currentAnimation = null;
 			scheduleSaveCurrentPositionBookmark(DEF_SAVE_POSITION_INTERVAL);
 			updateCurrentPositionStatus();
+
 			scheduleGc();
 		}
 
@@ -6286,6 +6289,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
         mReaderMenu = new DialogReaderMenu(mActivity, handler);
 	    mReaderMenu.show();
+	}
+
+	private void updateReaderMenuPage()
+	{
+	    if (mReaderMenu != null && mReaderMenu.isShowing()) {
+	        PositionProperties pos = doc.getPositionProps(null);
+	        mReaderMenu.setPageIndex(pos.pageNumber + 1);
+	        mReaderMenu.setPageCount(pos.pageCount);
+	    }
 	}
 
 	/**
