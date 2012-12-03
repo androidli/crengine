@@ -1416,9 +1416,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		        boolean isPageMode = mSettings.getInt(PROP_PAGE_VIEW_MODE, 1) == 1;
 		        int dir = isPageMode ? x - start_x : y - start_y;
-		        if (pageFlipAnimationSpeedMs == 0 || DeviceInfo.EINK_SCREEN) {
+		        if (pageFlipAnimationSpeedMs == 0 || com.onyx.android.sdk.device.DeviceInfo.singleton().getDeviceController().isEInkScreen()) {
 		            return performAction(dir < 0 ? ReaderAction.PAGE_DOWN : ReaderAction.PAGE_UP, false);
 		        }
+		        startAnimation(start_x, start_y, width, height, x, y);
+		        updateAnimation(x, y);
+		        state = STATE_FLIPPING;
+		        return true;
 		    }
 		    else if (event.getAction() == MotionEvent.ACTION_OUTSIDE) {
 		        return unexpectedEvent();
@@ -6293,7 +6297,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private void updateReaderMenuPage()
 	{
-	    if (mReaderMenu != null && mReaderMenu.isShowing()) {
+	    if (mReaderMenu != null) {
 	        PositionProperties pos = doc.getPositionProps(null);
 	        mReaderMenu.setPageIndex(pos.pageNumber + 1);
 	        mReaderMenu.setPageCount(pos.pageCount);
