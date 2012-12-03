@@ -95,7 +95,7 @@ public class DeviceInfo {
 		EINK_NOOK = MANUFACTURER.toLowerCase().contentEquals("barnesandnoble") && MODEL.contentEquals("NOOK") &&
 				DEVICE.toLowerCase().contentEquals("zoom2");
 		EINK_SONY = MANUFACTURER.toLowerCase().contentEquals("sony") && MODEL.startsWith("PRS-T");
-		EINK_BOOX = true;
+		EINK_BOOX = com.onyx.android.sdk.device.DeviceInfo.singleton().getDeviceController().isEInkScreen();
 		EINK_SCREEN = EINK_SONY || EINK_NOOK || EINK_BOOX; // TODO: set to true for eink devices like Nook Touch
 
 		POCKETBOOK = MODEL.toLowerCase().startsWith("pocketbook") || MODEL.toLowerCase().startsWith("obreey");

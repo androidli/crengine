@@ -1416,7 +1416,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 		        boolean isPageMode = mSettings.getInt(PROP_PAGE_VIEW_MODE, 1) == 1;
 		        int dir = isPageMode ? x - start_x : y - start_y;
-		        if (pageFlipAnimationSpeedMs == 0 || com.onyx.android.sdk.device.DeviceInfo.singleton().getDeviceController().isEInkScreen()) {
+		        if (pageFlipAnimationSpeedMs == 0 || DeviceInfo.EINK_SCREEN) {
 		            return performAction(dir < 0 ? ReaderAction.PAGE_DOWN : ReaderAction.PAGE_UP, false);
 		        }
 		        startAnimation(start_x, start_y, width, height, x, y);
