@@ -13,6 +13,7 @@ import java.util.concurrent.Callable;
 
 import org.coolreader.CoolReader;
 import org.coolreader.R;
+import org.coolreader.crengine.CoverpageManager.CoverpageBitmapReadyListener;
 import org.coolreader.crengine.Engine.HyphDict;
 import org.coolreader.crengine.InputDialog.InputHandler;
 import org.coolreader.sync.ChangeInfo;
@@ -21,6 +22,7 @@ import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.ColorFilter;
@@ -28,6 +30,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.text.ClipboardManager;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.GestureDetector;
@@ -38,6 +41,9 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.LinearLayout;
 
+import com.onyx.android.sdk.data.cms.OnyxCmsCenter;
+import com.onyx.android.sdk.data.cms.OnyxMetadata;
+import com.onyx.android.sdk.data.util.RefValue;
 import com.onyx.android.sdk.ui.data.DirectoryItem;
 import com.onyx.android.sdk.ui.dialog.AnnotationItem;
 import com.onyx.android.sdk.ui.dialog.DialogDirectory;
@@ -54,6 +60,7 @@ import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.RotationScreenProperty;
 import com.onyx.android.sdk.ui.util.BookmarkIcon;
 
 public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback, Settings {
+    private static final String TAG = "ReaderView";
 
 	public static final Logger log = L.create("rv", Log.VERBOSE);
 	public static final Logger alog = L.create("ra", Log.WARN);
@@ -3317,6 +3324,69 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			fi = book.getFileInfo();
 			log.v("loadDocument() : item from history : " + fi);
 		}
+		
+		final OnyxMetadata data = OnyxMetadata.createFromFile(fi.getPathName(), true);
+        if (data != null) {
+            String md5 = data.getMD5();
+
+            final Context ctx = this.getContext();
+            if (OnyxCmsCenter.getMetadata(ctx, data)) {
+                data.setTitle(fi.getTitle());
+                if (fi.getAuthors() != null) {
+                    String[] fi_authors = fi.getAuthors().split("|");
+                    if (fi_authors != null) {
+                        ArrayList<String> authors = new ArrayList<String>();
+                        for (String a : fi_authors) {
+                            authors.add(a);
+                        }
+                        data.setAuthors(authors);
+                    }
+                }
+
+                if (data.getMD5() == null || !data.getMD5().equals(md5)) {
+                    data.setMD5(md5);
+                }
+
+                OnyxCmsCenter.updateMetadata(ctx, data);
+            }
+            else {
+                data.setTitle(fi.getTitle());
+                if (fi.getAuthors() != null) {
+                    String[] fi_authors = fi.getAuthors().split("|");
+                    if (fi_authors != null) {
+                        ArrayList<String> authors = new ArrayList<String>();
+                        for (String a : fi_authors) {
+                            authors.add(a);
+                        }
+                        data.setAuthors(authors);
+                    }
+                }
+
+                OnyxCmsCenter.insertMetadata(ctx, data);
+            }
+
+            RefValue<Bitmap> result = new RefValue<Bitmap>();
+            if (!OnyxCmsCenter.getThumbnail(ctx, data, result)) {
+                DisplayMetrics outMetrics = new DisplayMetrics();
+                mActivity.getWindowManager().getDefaultDisplay().getMetrics(outMetrics);
+                int windowSize = outMetrics.widthPixels < outMetrics.heightPixels ? outMetrics.widthPixels : outMetrics.heightPixels;
+                int w = windowSize * 4 / 10;
+                int h = w * 4 / 3;
+                Bitmap bmp = Bitmap.createBitmap(w, h, Config.RGB_565);
+                Services.getCoverpageManager().drawCoverpageFor(mActivity.getDB(), fi, bmp, new CoverpageBitmapReadyListener() {
+                    @Override
+                    public void onCoverpageReady(CoverpageManager.ImageItem file, Bitmap bitmap) {
+                        if (!OnyxCmsCenter.insertThumbnail(ctx, data, bitmap)) {
+                            Log.d(TAG, "insert thumbnail failed");
+                        }
+                        else {
+                            Log.d(TAG, "insert thumbnail successfully");
+                        }
+                    }
+                }); 
+            }
+        }
+		
 		return loadDocument(fi, errorHandler);
 	}
 	
