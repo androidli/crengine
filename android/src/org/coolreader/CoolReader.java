@@ -73,6 +73,7 @@ public class CoolReader extends BaseActivity
 	private BrowserViewLayout mBrowserFrame;
 	CRRootView mHomeFrame;
 	private Engine mEngine;
+	private long mThreadId = -1;
 	//View startupView;
 	//CRDB mDB;
 	private ViewGroup mCurrentFrame;
@@ -163,7 +164,7 @@ public class CoolReader extends BaseActivity
         	log.i("Billing is supported");
         }
 
-
+        mThreadId = Thread.currentThread().getId();
 
         //Services.getEngine().showProgress( 0, R.string.progress_starting_cool_reader );
 
@@ -201,6 +202,16 @@ public class CoolReader extends BaseActivity
 		showRootWindow();
 		
         log.i("CoolReader.onCreate() exiting");
+    }
+
+    public void postAction(Runnable r)
+    {
+        if (Thread.currentThread().getId() == mThreadId) {
+            r.run();
+        }
+        else {
+            mHandler.post(r);
+        }
     }
 
 	public final static boolean CLOSE_BOOK_ON_STOP = false;
