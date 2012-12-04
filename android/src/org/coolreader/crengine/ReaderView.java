@@ -1378,7 +1378,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		        width = getWidth();
 		        firstDown = Utils.timeStamp();
 
-		        if(x >= mBookmarkX && x < mBookmarkBitmap.getWidth() + mBookmarkX && y >= mBookmarkY && y < mBookmarkBitmap.getHeight()) {
+		        if(mIsLoadSuccess && x >= mBookmarkX && x < mBookmarkBitmap.getWidth() + mBookmarkX && y >= mBookmarkY && y < mBookmarkBitmap.getHeight()) {
 		            Bookmark bm = doc.getCurrentPageBookmark();
 		            for (int i = 0; i < mBookInfo.getBookmarkCount(); i++) {
 		                if (mBookInfo.getBookmark(i).getPosText().equals(bm.getPosText())) {
@@ -3619,6 +3619,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			bi = preparePageImage(0);
 			if ( bi!=null ) {
 				draw(isPartially);
+				hideLoadingDialog();
 			}
 		}
 		@Override
@@ -5014,10 +5015,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        boolean success = doc.loadDocument(filename);
 	        if ( success ) {
 				log.v("loadDocumentInternal completed successfully");
-
-				hideLoadingDialog();
-				mIsLoadSuccess = true;
-				currentProgressPosition = -1;
 				
 				doc.requestRender();
 				
@@ -5263,7 +5260,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     		if (isProgressActive()) {
         		log.d("onDraw() -- drawing progress " + (currentProgressPosition / 100));
         		drawPageBackground(canvas);
-        		showLoadingDialog();
     		} else if (mInitialized && mCurrentPageInfo != null && mCurrentPageInfo.bitmap != null) {
         		log.d("onDraw() -- drawing page image");
 
@@ -5300,6 +5296,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         		if ( dst.width()!=canvas.getWidth() || dst.height()!=canvas.getHeight() )
         			canvas.drawColor(Color.rgb(32, 32, 32));
         		drawDimmedBitmap(canvas, mCurrentPageInfo.bitmap, src, dst);
+
+        		mIsLoadSuccess = true;
     		} else {
         		log.d("onDraw() -- drawing empty screen");
         		drawPageBackground(canvas);
@@ -5596,6 +5594,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		public boolean OnFormatProgress(final int percent) {
 			if ( enable_progress_callback ) {
 		    	log.d("readerCallback.OnFormatProgress " + percent);
+		    	mActivity.postAction(new Runnable()
+		    	{
+
+		    	    @Override
+		    	    public void run()
+		    	    {
+		    	        showLoadingDialog(getResources().getString(R.string.progress_formatting));
+		    	    }
+		    	});
 		    	showProgress( percent*4/10 + 5000, R.string.progress_formatting);
 			}
 //			executeSync( new Callable<Object>() {
@@ -5623,6 +5630,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    	
 		}
 		public void OnLoadFileError(String message) {
+		    mActivity.postAction(new Runnable()
+		    {
+
+		        @Override
+		        public void run()
+		        {
+		            hideLoadingDialog();
+		        }
+		    });
 	    	log.d("readerCallback.OnLoadFileError(" + message + ")");
 		}
 		public void OnLoadFileFirstPagesReady() {
@@ -5674,6 +5690,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			cancelSwapTask();
 			BackgroundThread.ensureBackground();
 	    	log.d("readerCallback.OnLoadFileStart " + filename);
+	    	mActivity.postAction(new Runnable()
+	    	{
+
+	    	    @Override
+	    	    public void run()
+	    	    {
+	    	        showLoadingDialog(getResources().getString(R.string.progress_loading));
+	    	    }
+	    	});
 		}
 	    /// Override to handle external links
 	    public void OnImageCacheClear() {
@@ -6500,13 +6525,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    canvas.drawBitmap(mBookmarkBitmap, mBookmarkX, mBookmarkY, paint);
 	}
 
-	private void showLoadingDialog()
+	private void showLoadingDialog(String msg)
 	{
-	    if (mDialogLoading == null && !mIsLoadSuccess) {
-	        mDialogLoading = new DialogLoading(mActivity, getResources().getString(currentProgressTitle));
+	    if (mDialogLoading == null) {
+	        mDialogLoading = new DialogLoading(mActivity, msg);
 	        mDialogLoading.show();
-	    } else if (!mDialogLoading.isShowing() && !mIsLoadSuccess) {
-	        mDialogLoading.show();
+	    } else {
+	        mDialogLoading.setMessage(msg);
+	        if (!mDialogLoading.isShowing()) {
+	            mDialogLoading.show();
+            }
 	    }
 	}
 
