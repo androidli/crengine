@@ -3325,67 +3325,72 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.v("loadDocument() : item from history : " + fi);
 		}
 		
-		final OnyxMetadata data = OnyxMetadata.createFromFile(fi.getPathName(), true);
-        if (data != null) {
-            String md5 = data.getMD5();
+		try {
+		    final OnyxMetadata data = OnyxMetadata.createFromFile(fi.getPathName(), true);
+		    if (data != null) {
+		        String md5 = data.getMD5();
 
-            final Context ctx = this.getContext();
-            if (OnyxCmsCenter.getMetadata(ctx, data)) {
-                data.setTitle(fi.getTitle());
-                if (fi.getAuthors() != null) {
-                    String[] fi_authors = fi.getAuthors().split("|");
-                    if (fi_authors != null) {
-                        ArrayList<String> authors = new ArrayList<String>();
-                        for (String a : fi_authors) {
-                            authors.add(a);
-                        }
-                        data.setAuthors(authors);
-                    }
-                }
+		        final Context ctx = this.getContext();
+		        if (OnyxCmsCenter.getMetadata(ctx, data)) {
+		            data.setTitle(fi.getTitle());
+		            if (fi.getAuthors() != null) {
+		                String[] fi_authors = fi.getAuthors().split("|");
+		                if (fi_authors != null) {
+		                    ArrayList<String> authors = new ArrayList<String>();
+		                    for (String a : fi_authors) {
+		                        authors.add(a);
+		                    }
+		                    data.setAuthors(authors);
+		                }
+		            }
 
-                if (data.getMD5() == null || !data.getMD5().equals(md5)) {
-                    data.setMD5(md5);
-                }
+		            if (data.getMD5() == null || !data.getMD5().equals(md5)) {
+		                data.setMD5(md5);
+		            }
 
-                OnyxCmsCenter.updateMetadata(ctx, data);
-            }
-            else {
-                data.setTitle(fi.getTitle());
-                if (fi.getAuthors() != null) {
-                    String[] fi_authors = fi.getAuthors().split("|");
-                    if (fi_authors != null) {
-                        ArrayList<String> authors = new ArrayList<String>();
-                        for (String a : fi_authors) {
-                            authors.add(a);
-                        }
-                        data.setAuthors(authors);
-                    }
-                }
+		            OnyxCmsCenter.updateMetadata(ctx, data);
+		        }
+		        else {
+		            data.setTitle(fi.getTitle());
+		            if (fi.getAuthors() != null) {
+		                String[] fi_authors = fi.getAuthors().split("|");
+		                if (fi_authors != null) {
+		                    ArrayList<String> authors = new ArrayList<String>();
+		                    for (String a : fi_authors) {
+		                        authors.add(a);
+		                    }
+		                    data.setAuthors(authors);
+		                }
+		            }
 
-                OnyxCmsCenter.insertMetadata(ctx, data);
-            }
+		            OnyxCmsCenter.insertMetadata(ctx, data);
+		        }
 
-            RefValue<Bitmap> result = new RefValue<Bitmap>();
-            if (!OnyxCmsCenter.getThumbnail(ctx, data, result)) {
-                DisplayMetrics outMetrics = new DisplayMetrics();
-                mActivity.getWindowManager().getDefaultDisplay().getMetrics(outMetrics);
-                int windowSize = outMetrics.widthPixels < outMetrics.heightPixels ? outMetrics.widthPixels : outMetrics.heightPixels;
-                int w = windowSize * 4 / 10;
-                int h = w * 4 / 3;
-                Bitmap bmp = Bitmap.createBitmap(w, h, Config.RGB_565);
-                Services.getCoverpageManager().drawCoverpageFor(mActivity.getDB(), fi, bmp, new CoverpageBitmapReadyListener() {
-                    @Override
-                    public void onCoverpageReady(CoverpageManager.ImageItem file, Bitmap bitmap) {
-                        if (!OnyxCmsCenter.insertThumbnail(ctx, data, bitmap)) {
-                            Log.d(TAG, "insert thumbnail failed");
-                        }
-                        else {
-                            Log.d(TAG, "insert thumbnail successfully");
-                        }
-                    }
-                }); 
-            }
-        }
+		        RefValue<Bitmap> result = new RefValue<Bitmap>();
+		        if (!OnyxCmsCenter.getThumbnail(ctx, data, result)) {
+		            DisplayMetrics outMetrics = new DisplayMetrics();
+		            mActivity.getWindowManager().getDefaultDisplay().getMetrics(outMetrics);
+		            int windowSize = outMetrics.widthPixels < outMetrics.heightPixels ? outMetrics.widthPixels : outMetrics.heightPixels;
+		            int w = windowSize * 4 / 10;
+		            int h = w * 4 / 3;
+		            Bitmap bmp = Bitmap.createBitmap(w, h, Config.RGB_565);
+		            Services.getCoverpageManager().drawCoverpageFor(mActivity.getDB(), fi, bmp, new CoverpageBitmapReadyListener() {
+		                @Override
+		                public void onCoverpageReady(CoverpageManager.ImageItem file, Bitmap bitmap) {
+		                    if (!OnyxCmsCenter.insertThumbnail(ctx, data, bitmap)) {
+		                        Log.d(TAG, "insert thumbnail failed");
+		                    }
+		                    else {
+		                        Log.d(TAG, "insert thumbnail successfully");
+		                    }
+		                }
+		            }); 
+		        }
+		    }
+		}
+		catch (Throwable th) {
+		    Log.w(TAG, th);
+		}
 		
 		return loadDocument(fi, errorHandler);
 	}
