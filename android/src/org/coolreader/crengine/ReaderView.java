@@ -6389,6 +6389,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	            // TODO Auto-generated method stub
 
 	        }
+
+	        @Override
+	        public void showReaderSettings()
+	        {
+	            // TODO Auto-generated method stub
+
+	        }
 	    };
 
         mReaderMenu = new DialogReaderMenu(mActivity, handler);
@@ -6429,6 +6436,30 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         }
         else if (property == LineSpacingProperty.small) {
             line_spacing = 80;
+        }
+        else if (property == LineSpacingProperty.enlarge) {
+            line_spacing = mSettings.getInt(PROP_INTERLINE_SPACE, 100);
+            for (int i = 0; i < OptionsDialog.sInterlineSpaces.length; i++) {
+                if (line_spacing == OptionsDialog.sInterlineSpaces[i]) {
+                    if (i < OptionsDialog.sInterlineSpaces.length - 1) {
+                        line_spacing = OptionsDialog.sInterlineSpaces[++i];
+                        break;
+                    }
+                    return;
+                }
+            }
+        }
+        else if (property == LineSpacingProperty.decreases) {
+            line_spacing = mSettings.getInt(PROP_INTERLINE_SPACE, 100);
+            for (int i = 0; i < OptionsDialog.sInterlineSpaces.length; i++) {
+                if (line_spacing == OptionsDialog.sInterlineSpaces[i]) {
+                    if (i > 0) {
+                        line_spacing = OptionsDialog.sInterlineSpaces[--i];
+                        break;
+                    }
+                    return;
+                }
+            }
         }
 
         mSettings.setProperty(PROP_INTERLINE_SPACE, String.valueOf(line_spacing));
