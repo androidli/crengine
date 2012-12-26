@@ -6384,6 +6384,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	            // TODO Auto-generated method stub
 
 	        }
+
+                public void showReaderSettings()
+                {}
 	    };
 
         mReaderMenu = new DialogReaderMenu(mActivity, handler);
