@@ -18,7 +18,6 @@ import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
@@ -1491,11 +1490,14 @@ public class BaseActivity extends Activity implements Settings {
 			props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_BLOCK_SCALE, "0");
 			props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMOUT_INLINE_SCALE, "0");
 			props.applyDefault(ReaderView.PROP_IMG_SCALING_ZOOMIN_INLINE_SCALE, "0");
-			
+
+			hmargin = "10";
+			vmargin = "10";
 			props.applyDefault(ReaderView.PROP_PAGE_MARGIN_LEFT, hmargin);
 			props.applyDefault(ReaderView.PROP_PAGE_MARGIN_RIGHT, hmargin);
 			props.applyDefault(ReaderView.PROP_PAGE_MARGIN_TOP, vmargin);
 			props.applyDefault(ReaderView.PROP_PAGE_MARGIN_BOTTOM, vmargin);
+			props.applyDefault(ReaderView.PROP_PAGE_MARGIN, hmargin);
 			
 	        props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_MODE, "0");
 	        props.applyDefault(ReaderView.PROP_APP_SCREEN_UPDATE_INTERVAL, "10");

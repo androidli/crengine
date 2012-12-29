@@ -57,6 +57,7 @@ import com.onyx.android.sdk.ui.dialog.DialogReaderMenu;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.FontSizeProperty;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.LineSpacingProperty;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.RotationScreenProperty;
+import com.onyx.android.sdk.ui.dialog.DialogSettingsPageMargins;
 import com.onyx.android.sdk.ui.util.BookmarkIcon;
 
 public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback, Settings {
@@ -6401,8 +6402,25 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public void showReaderSettings()
 	        {
-	            // TODO Auto-generated method stub
+	            DialogSettingsPageMargins dlg = new DialogSettingsPageMargins(mActivity, Integer.valueOf(mSettings.getProperty(ReaderView.PROP_PAGE_MARGIN)));
+	            dlg.setOnPageMarginsListener(new DialogSettingsPageMargins.onPageMarginsListener()
+                {
 
+                    @Override
+                    public int onSetPageMargins(int margin)
+                    {
+                        mSettings.setProperty(PROP_PAGE_MARGIN, String.valueOf(margin));
+                        String page_margin = mSettings.getProperty(PROP_PAGE_MARGIN);
+                        mSettings.setProperty(PROP_PAGE_MARGIN_LEFT, page_margin);
+                        mSettings.setProperty(PROP_PAGE_MARGIN_RIGHT, page_margin);
+                        mSettings.setProperty(PROP_PAGE_MARGIN_TOP, page_margin);
+                        mSettings.setProperty(PROP_PAGE_MARGIN_BOTTOM, page_margin);
+
+                        ReaderView.this.saveSettings(mSettings);
+                        return Integer.valueOf(page_margin);
+                    }
+                });
+	            dlg.show();
 	        }
 	    };
 

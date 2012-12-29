@@ -49,6 +49,8 @@ public interface Settings {
     public static final String PROP_EMBEDDED_STYLES         ="crengine.doc.embedded.styles.enabled";
     public static final String PROP_EMBEDDED_FONTS          ="crengine.doc.embedded.fonts.enabled";
     public static final String PROP_DISPLAY_INVERSE         ="crengine.display.inverse";
+
+    public static final String PROP_PAGE_MARGIN = "crengine.page.margin";
 //    public static final String PROP_DISPLAY_FULL_UPDATE_INTERVAL ="crengine.display.full.update.interval";
 //    public static final String PROP_DISPLAY_TURBO_UPDATE_MODE ="crengine.display.turbo.update";
 

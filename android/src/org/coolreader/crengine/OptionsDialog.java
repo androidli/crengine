@@ -79,6 +79,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 	int[] mMargins = new int[] {
 			0, 1, 2, 3, 4, 5, 8, 10, 12, 15, 20, 25, 30, 40, 50, 60, 80, 100, 200, 300
 		};
+	int[] mOnyxMargins = new int[] { 0, 10, 20, 30 };
 	double[] mGammas = new double[] {
 			0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.5, 1.9
 		};
@@ -1834,10 +1835,11 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mOptionsPage.add(new ColorOption(this, getString(R.string.options_view_color_bookmark_correction), PROP_HIGHLIGHT_BOOKMARK_COLOR_CORRECTION, 0xFF8000).noIcon());
 		}
 
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_left), PROP_PAGE_MARGIN_LEFT).add(mMargins).setDefaultValue("5").setIconId(R.drawable.cr3_option_text_margin_left));
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_right), PROP_PAGE_MARGIN_RIGHT).add(mMargins).setDefaultValue("5").setIconId(R.drawable.cr3_option_text_margin_right));
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_top), PROP_PAGE_MARGIN_TOP).add(mMargins).setDefaultValue("5").setIconId(R.drawable.cr3_option_text_margin_top));
-		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_bottom), PROP_PAGE_MARGIN_BOTTOM).add(mMargins).setDefaultValue("5").setIconId(R.drawable.cr3_option_text_margin_bottom));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_left), PROP_PAGE_MARGIN_LEFT).add(mOnyxMargins).setDefaultValue("2").setIconId(R.drawable.cr3_option_text_margin_left));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_right), PROP_PAGE_MARGIN_RIGHT).add(mOnyxMargins).setDefaultValue("2").setIconId(R.drawable.cr3_option_text_margin_right));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_top), PROP_PAGE_MARGIN_TOP).add(mOnyxMargins).setDefaultValue("2").setIconId(R.drawable.cr3_option_text_margin_top));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_bottom), PROP_PAGE_MARGIN_BOTTOM).add(mOnyxMargins).setDefaultValue("2").setIconId(R.drawable.cr3_option_text_margin_bottom));
+		mOptionsPage.add(new ListOption(this, getString(R.string.options_page_margin_bottom), PROP_PAGE_MARGIN).add(mOnyxMargins).setDefaultValue("2").setIconId(R.drawable.cr3_option_text_margin_bottom));
 		
 		mOptionsControls = new OptionsListView(getContext());
 		mOptionsControls.add(new KeyMapOption(this, getString(R.string.options_app_key_actions)).setIconId(R.drawable.cr3_option_controls_keys));
