@@ -15,4 +15,4 @@ android/jni/cr3engine.map
 android/lint.xml
 *~
 android/proguard-project.txt
-
+android/cr3engine.map

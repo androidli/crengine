@@ -3327,7 +3327,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		}
 		
 		try {
-		    final OnyxMetadata data = OnyxMetadata.createFromFile(fi.getPathName(), true);
+		    final OnyxMetadata data = OnyxMetadata.createFromFile(fi.getPathName());
 		    if (data != null) {
 		        String md5 = data.getMD5();
 
