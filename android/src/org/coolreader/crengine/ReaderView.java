@@ -57,7 +57,7 @@ import com.onyx.android.sdk.ui.dialog.DialogReaderMenu;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.FontSizeProperty;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.LineSpacingProperty;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.RotationScreenProperty;
-import com.onyx.android.sdk.ui.dialog.DialogSettingsPageMargins;
+import com.onyx.android.sdk.ui.dialog.DialogReaderSettings;
 import com.onyx.android.sdk.ui.util.BookmarkIcon;
 
 public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback, Settings {
@@ -6402,8 +6402,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public void showReaderSettings()
 	        {
-	            DialogSettingsPageMargins dlg = new DialogSettingsPageMargins(mActivity, Integer.valueOf(mSettings.getProperty(ReaderView.PROP_PAGE_MARGIN)));
-	            dlg.setOnPageMarginsListener(new DialogSettingsPageMargins.onPageMarginsListener()
+	            DialogReaderSettings dlg = new DialogReaderSettings(mActivity, Integer.valueOf(mSettings.getProperty(ReaderView.PROP_PAGE_MARGIN)));
+	            dlg.setOnPageMarginsListener(new DialogReaderSettings.onPageMarginsListener()
                 {
 
                     @Override
