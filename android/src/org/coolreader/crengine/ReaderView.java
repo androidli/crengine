@@ -57,6 +57,7 @@ import com.onyx.android.sdk.ui.dialog.DialogReaderMenu;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.FontSizeProperty;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.LineSpacingProperty;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.RotationScreenProperty;
+import com.onyx.android.sdk.ui.dialog.DialogReaderSettings;
 import com.onyx.android.sdk.ui.util.BookmarkIcon;
 
 public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback, Settings {
@@ -6173,7 +6174,15 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public void toggleFontEmbolden()
 	        {
-	            // TODO Auto-generated method stub
+	            String s = mSettings.getProperty(PROP_FONT_WEIGHT_EMBOLDEN);
+	            if (s.equals("0")) {
+                    s = "1";
+                }
+	            else {
+	                s = "0";
+	            }
+	            mSettings.setProperty(PROP_FONT_WEIGHT_EMBOLDEN, s);
+	            ReaderView.this.saveSettings(mSettings);
 
 	        }
 
@@ -6390,8 +6399,29 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	        }
 
-                public void showReaderSettings()
-                {}
+	        @Override
+	        public void showReaderSettings()
+	        {
+	            DialogReaderSettings dlg = new DialogReaderSettings(mActivity, Integer.valueOf(mSettings.getProperty(ReaderView.PROP_PAGE_MARGIN)));
+	            dlg.setOnPageMarginsListener(new DialogReaderSettings.onPageMarginsListener()
+                {
+
+                    @Override
+                    public int onSetPageMargins(int margin)
+                    {
+                        mSettings.setProperty(PROP_PAGE_MARGIN, String.valueOf(margin));
+                        String page_margin = mSettings.getProperty(PROP_PAGE_MARGIN);
+                        mSettings.setProperty(PROP_PAGE_MARGIN_LEFT, page_margin);
+                        mSettings.setProperty(PROP_PAGE_MARGIN_RIGHT, page_margin);
+                        mSettings.setProperty(PROP_PAGE_MARGIN_TOP, page_margin);
+                        mSettings.setProperty(PROP_PAGE_MARGIN_BOTTOM, page_margin);
+
+                        ReaderView.this.saveSettings(mSettings);
+                        return Integer.valueOf(page_margin);
+                    }
+                });
+	            dlg.show();
+	        }
 	    };
 
         mReaderMenu = new DialogReaderMenu(mActivity, handler);
@@ -6432,6 +6462,30 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         }
         else if (property == LineSpacingProperty.small) {
             line_spacing = 80;
+        }
+        else if (property == LineSpacingProperty.enlarge) {
+            line_spacing = mSettings.getInt(PROP_INTERLINE_SPACE, 100);
+            for (int i = 0; i < OptionsDialog.sInterlineSpaces.length; i++) {
+                if (line_spacing == OptionsDialog.sInterlineSpaces[i]) {
+                    if (i < OptionsDialog.sInterlineSpaces.length - 1) {
+                        line_spacing = OptionsDialog.sInterlineSpaces[++i];
+                        break;
+                    }
+                    return;
+                }
+            }
+        }
+        else if (property == LineSpacingProperty.decreases) {
+            line_spacing = mSettings.getInt(PROP_INTERLINE_SPACE, 100);
+            for (int i = 0; i < OptionsDialog.sInterlineSpaces.length; i++) {
+                if (line_spacing == OptionsDialog.sInterlineSpaces[i]) {
+                    if (i > 0) {
+                        line_spacing = OptionsDialog.sInterlineSpaces[--i];
+                        break;
+                    }
+                    return;
+                }
+            }
         }
 
         mSettings.setProperty(PROP_INTERLINE_SPACE, String.valueOf(line_spacing));
