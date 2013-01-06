@@ -43,6 +43,7 @@ import android.widget.LinearLayout;
 
 import com.onyx.android.sdk.data.cms.OnyxCmsCenter;
 import com.onyx.android.sdk.data.cms.OnyxMetadata;
+import com.onyx.android.sdk.data.cms.OnyxMetadata.BookProgress;
 import com.onyx.android.sdk.data.util.RefValue;
 import com.onyx.android.sdk.ui.data.DirectoryItem;
 import com.onyx.android.sdk.ui.dialog.AnnotationItem;
@@ -2640,6 +2641,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		});
 
 		updateReaderMenuPage();
+
+		setBookProgress();
 	}
 	
 	public void doCommandFromBackgroundThread( final ReaderCommand cmd, final int param )
@@ -6674,6 +6677,23 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 	    if (mDialogLoading != null && mDialogLoading.isShowing()) {
 	        mDialogLoading.dismiss();
+	    }
+	}
+
+	private void setBookProgress()
+	{
+	    PositionProperties pos = doc.getPositionProps(null);
+	    OnyxMetadata metadata = OnyxCmsCenter.getMetadata(mActivity, mBookInfo.getFileInfo().getPathName());
+	    if (metadata != null) {
+	        BookProgress progress = new BookProgress(pos.pageNumber + 1, pos.pageCount);
+	        metadata.setProgress(progress);
+	        OnyxCmsCenter.updateMetadata(mActivity, metadata);
+	    }
+	    else {
+	        metadata = OnyxMetadata.createFromFile(mBookInfo.getFileInfo().getPathName());
+	        BookProgress progress = new BookProgress(pos.pageNumber + 1, pos.pageCount);
+	        metadata.setProgress(progress);
+	        OnyxCmsCenter.insertMetadata(mActivity, metadata);
 	    }
 	}
 }
