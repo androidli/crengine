@@ -6739,7 +6739,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	}
 
     //add by dxwts
-	public boolean isSpeaking; 
+	private boolean isSpeaking; 
     private class TtsControl implements TTS.OnUtteranceCompletedListener
     {
         
