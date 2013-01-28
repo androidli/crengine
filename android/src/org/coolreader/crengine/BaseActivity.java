@@ -1462,7 +1462,7 @@ public class BaseActivity extends Activity implements Settings {
 	        props.applyDefault(ReaderView.PROP_STATUS_FONT_COLOR_NIGHT, "#80000000"); // don't use separate color
 	        props.setProperty(ReaderView.PROP_ROTATE_ANGLE, "0"); // crengine's rotation will not be user anymore
 	        props.setProperty(ReaderView.PROP_DISPLAY_INVERSE, "0");
-	        props.applyDefault(ReaderView.PROP_APP_FULLSCREEN, "0");
+	        props.applyDefault(ReaderView.PROP_APP_FULLSCREEN, "1");
 	        props.applyDefault(ReaderView.PROP_APP_VIEW_AUTOSCROLL_SPEED, "1500");
 	        props.applyDefault(ReaderView.PROP_APP_SCREEN_BACKLIGHT, "-1");
 			props.applyDefault(ReaderView.PROP_SHOW_BATTERY, "1"); 
