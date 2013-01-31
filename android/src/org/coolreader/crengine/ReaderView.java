@@ -22,6 +22,7 @@ import org.coolreader.sync.SyncServiceAccessor;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
@@ -40,7 +41,6 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
 import android.widget.LinearLayout;
 
 import com.onyx.android.sdk.data.cms.OnyxCmsCenter;
@@ -59,7 +59,6 @@ import com.onyx.android.sdk.ui.dialog.DialogLoading;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.FontSizeProperty;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.LineSpacingProperty;
-import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.RotationScreenProperty;
 import com.onyx.android.sdk.ui.dialog.DialogReaderSettings;
 import com.onyx.android.sdk.ui.util.BookmarkIcon;
 
@@ -6378,25 +6377,23 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        }
 
 	        @Override
-	        public void changeRotationScreen(RotationScreenProperty property)
+	        public void changeRotationScreen(int orientation)
 	        {
-	            if (property == RotationScreenProperty.rotation_0) {
-	                mReaderMenu.dismiss();
-	                toggleScreenOrientation(0);
+	            int rotation = 0;
+	            if (orientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+	                rotation = 0;
 	            }
-	            else if (property == RotationScreenProperty.rotation_90) {
-	                mReaderMenu.dismiss();
-	                toggleScreenOrientation(3);
+	            else if (orientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+	                rotation = 1;
 	            }
-	            else if (property == RotationScreenProperty.rotation_180) {
-	                mReaderMenu.dismiss();
-	                toggleScreenOrientation(2);
+	            else if (orientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT) {
+	                rotation = 2;
 	            }
-	            else if (property == RotationScreenProperty.rotation_270) {
-	                mReaderMenu.dismiss();
-	                toggleScreenOrientation(1);
+	            else if (orientation == ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE) {
+	                rotation = 3;
 	            }
 
+	            toggleScreenOrientation(rotation);
 	        }
 
 	        @Override
