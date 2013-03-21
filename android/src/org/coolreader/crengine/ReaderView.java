@@ -593,7 +593,20 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	@Override
 	public boolean onKeyDown(int keyCode, final KeyEvent event) {
-		
+		switch (keyCode) {
+		case KeyEvent.KEYCODE_DPAD_CENTER:
+		case KeyEvent.KEYCODE_ENTER:
+			Bookmark bm = doc.getCurrentPageBookmark();
+			for (int i = 0; i < mBookInfo.getBookmarkCount(); i++) {
+				if (mBookInfo.getBookmark(i).getPosText()
+						.equals(bm.getPosText())) {
+					removeBookmark(mBookInfo.getBookmark(i));
+					return true;
+				}
+			}
+			addBookmark(bm);
+			return true;
+		}
 		if (keyCode == 0)
 			keyCode = event.getScanCode();
 		keyCode = translateKeyCode(keyCode);
