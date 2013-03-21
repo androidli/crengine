@@ -107,7 +107,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final int SEL_CMD_NEXT_SENTENCE = 2;
     public static final int SEL_CMD_PREV_SENTENCE = 3;
     
-    
     public enum ViewMode
     {
     	PAGES,
@@ -413,6 +412,21 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private int currentDoubleClickActionKeyCode = 0;
 	@Override
 	public boolean onKeyUp(int keyCode, final KeyEvent event) {
+		Log.d(TAG, "onKeyUp");
+		switch (keyCode) {
+		case KeyEvent.KEYCODE_DPAD_CENTER:
+		case KeyEvent.KEYCODE_ENTER:
+			Bookmark bm = doc.getCurrentPageBookmark();
+			for (int i = 0; i < mBookInfo.getBookmarkCount(); i++) {
+				if (mBookInfo.getBookmark(i).getPosText()
+						.equals(bm.getPosText())) {
+					removeBookmark(mBookInfo.getBookmark(i));
+					return true;
+				}
+			}
+			addBookmark(bm);
+			return true;
+		}
 		if (keyCode == 0)
 			keyCode = event.getScanCode();
 		mActivity.onUserActivity();
@@ -593,20 +607,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	@Override
 	public boolean onKeyDown(int keyCode, final KeyEvent event) {
-		switch (keyCode) {
-		case KeyEvent.KEYCODE_DPAD_CENTER:
-		case KeyEvent.KEYCODE_ENTER:
-			Bookmark bm = doc.getCurrentPageBookmark();
-			for (int i = 0; i < mBookInfo.getBookmarkCount(); i++) {
-				if (mBookInfo.getBookmark(i).getPosText()
-						.equals(bm.getPosText())) {
-					removeBookmark(mBookInfo.getBookmark(i));
-					return true;
-				}
-			}
-			addBookmark(bm);
-			return true;
-		}
 		if (keyCode == 0)
 			keyCode = event.getScanCode();
 		keyCode = translateKeyCode(keyCode);
