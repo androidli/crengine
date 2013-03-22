@@ -50,9 +50,7 @@ public class ReaderAction {
 	public final static ReaderAction NONE = new ReaderAction("NONE", R.string.action_none, ReaderCommand.DCMD_NONE, 0 );
 	public final static ReaderAction REPEAT = new ReaderAction("REPEAT", R.string.action_repeat, ReaderCommand.DCMD_REPEAT, 0 );
 	public final static ReaderAction PAGE_DOWN = new ReaderAction("PAGE_DOWN", R.string.action_pagedown, ReaderCommand.DCMD_PAGEDOWN, 1 ).setCanRepeat();
-	public final static ReaderAction PAGE_DOWN_10 = new ReaderAction("PAGE_DOWN_10", R.string.action_pagedown_10, ReaderCommand.DCMD_PAGEDOWN, 10 ).setCanRepeat();
 	public final static ReaderAction PAGE_UP = new ReaderAction("PAGE_UP", R.string.action_pageup, ReaderCommand.DCMD_PAGEUP, 1 ).setCanRepeat();
-	public final static ReaderAction PAGE_UP_10 = new ReaderAction("PAGE_UP_10", R.string.action_pageup_10, ReaderCommand.DCMD_PAGEUP, 10 ).setCanRepeat();
 	public final static ReaderAction ZOOM_IN = new ReaderAction("ZOOM_IN", R.string.mi_font_size_increase, ReaderCommand.DCMD_ZOOM_IN, 1); //,  R.id.cr3_mi_font_size_increase 
 	public final static ReaderAction ZOOM_OUT = new ReaderAction("ZOOM_OUT", R.string.mi_font_size_decrease, ReaderCommand.DCMD_ZOOM_OUT, 1); //,  R.id.cr3_mi_font_size_decrease 
 	public final static ReaderAction DOCUMENT_STYLES = new ReaderAction("DOCUMENT_STYLES", R.string.action_toggle_document_styles, ReaderCommand.DCMD_TOGGLE_DOCUMENT_STYLES, 0, R.id.cr3_mi_toggle_document_styles );
@@ -107,8 +105,6 @@ public class ReaderAction {
 		NONE,
 		PAGE_DOWN,
 		PAGE_UP,
-		PAGE_DOWN_10,
-		PAGE_UP_10,
 		FIRST_PAGE,
 		LAST_PAGE,
 		NEXT_CHAPTER,
@@ -149,8 +145,6 @@ public class ReaderAction {
 		SWITCH_PROFILE,
 		TEXT_AUTOFORMAT,
 		USER_MANUAL,
-//		AUTOSCROLL_SPEED_INCREASE,
-//		AUTOSCROLL_SPEED_DECREASE,
 	};
 
 	public boolean isNone() {
