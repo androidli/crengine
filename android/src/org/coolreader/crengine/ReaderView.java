@@ -114,10 +114,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     }
     
     private ViewMode viewMode = ViewMode.PAGES;
-    private CoolReader mActivity = null;
-    private DialogReaderMenu mReaderMenu = null;
-    private DialogReaderMenu.IMenuHandler menuHandler;
-    private TapHandler mCurrentTapHandler =  new TapHandler();
     
     public enum ReaderCommand
     {
@@ -166,6 +162,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	DCMD_SET_TEXT_FORMAT(136),
 
     	DCMD_SET_DOC_FONTS(137),
+
+        
 		
     	// definitions from android/jni/readerview.h
     	DCMD_OPEN_RECENT_BOOK(2000),
@@ -291,6 +289,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     private <T> T executeSync( final Callable<T> task )
     {
     	//log.d("executeSync called");
+    	
+    	
     	final Sync<T> sync = new Sync<T>();
     	post( new Runnable() {
     		public void run() {
@@ -306,7 +306,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	return res;
     }
     
-	
+	private final CoolReader mActivity;
     private final Engine mEngine;
     
     private BookInfo mBookInfo;
@@ -555,8 +555,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		trackedKeyEvent = null;
 		actionToRepeat = null;
 		repeatActionActive = false;
-		if (mCurrentTapHandler != null)
-			mCurrentTapHandler.cancel();
+		if (currentTapHandler != null)
+			currentTapHandler.cancel();
 	}
 
 	private boolean isTracked( KeyEvent event ) {
@@ -607,19 +607,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	@Override
 	public boolean onKeyDown(int keyCode, final KeyEvent event) {
-		if(keyCode == KeyEvent.KEYCODE_DPAD_UP){
-			menuHandler.increaseFontSize();
-			return true;
-		} else if(keyCode == KeyEvent.KEYCODE_DPAD_DOWN){
-			menuHandler.decreaseFontSize();
-			return true;
-		} else if(keyCode == KeyEvent.KEYCODE_DPAD_LEFT){
-			menuHandler.previousPage();
-			return true;
-		} else if(keyCode == KeyEvent.KEYCODE_DPAD_RIGHT){
-			menuHandler.nextPage();
-			return true;
-		} else if (keyCode == 0)
+		if (keyCode == 0)
 			keyCode = event.getScanCode();
 		keyCode = translateKeyCode(keyCode);
 
@@ -1170,7 +1158,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			currentImageViewer.close();
 	}
 
-	
+	private TapHandler currentTapHandler = null;
 	public class TapHandler {
 
 		private final static int STATE_INITIAL = 0; // no events yet
@@ -1228,7 +1216,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			state = STATE_DONE;
 			unhiliteTapZone(); 
-			mCurrentTapHandler = new TapHandler();
+			currentTapHandler = new TapHandler();
 			return true;
 		}
 
@@ -1237,7 +1225,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			log.d("performAction on touch: " + action);
 			state = STATE_DONE;
 
-			mCurrentTapHandler = new TapHandler();
+			currentTapHandler = new TapHandler();
 
 			if (!checkForLinks) {
 				onAction(action);
@@ -1367,7 +1355,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			BackgroundThread.instance().postGUI(new Runnable() {
 				@Override
 				public void run() {
-					if (mCurrentTapHandler == TapHandler.this && state == STATE_WAIT_FOR_DOUBLE_CLICK)
+					if (currentTapHandler == TapHandler.this && state == STATE_WAIT_FOR_DOUBLE_CLICK)
 						performAction(shortTapAction, false);
 				}
 			}, DOUBLE_CLICK_INTERVAL);
@@ -1378,7 +1366,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			BackgroundThread.instance().postGUI(new Runnable() {
 				@Override
 				public void run() {
-					if (mCurrentTapHandler == TapHandler.this && state == STATE_DOWN_1) {
+					if (currentTapHandler == TapHandler.this && state == STATE_DOWN_1) {
 						if (longTapAction == ReaderAction.START_SELECTION)
 							startSelection();
 						else
@@ -1495,9 +1483,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			return true;
 		}
 		
-			
-		mCurrentTapHandler.checkExpiration();
-		return mCurrentTapHandler.onTouchEvent(event);
+		if (currentTapHandler == null)
+			currentTapHandler = new TapHandler();
+		currentTapHandler.checkExpiration();
+		return currentTapHandler.onTouchEvent(event);
 	}
 
 	@Override
@@ -6096,6 +6085,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	gcTask.cancel();
     }
 
+    private DialogReaderMenu mReaderMenu = null;
     private DialogLoading mDialogLoading = null;
 	public ReaderView(CoolReader activity, Engine engine, Properties props) 
     {
@@ -6123,8 +6113,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         });
 
         post(new CreateViewTask( props ));
-        
-        menuHandler = new DialogReaderMenu.IMenuHandler()
+    }
+
+	private void showDialogReaderMenu()
+	{
+	    DialogReaderMenu.IMenuHandler handler = new DialogReaderMenu.IMenuHandler()
 	    {
 
 	        @Override
@@ -6202,8 +6195,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        {
 	            String s = mSettings.getProperty(PROP_FONT_WEIGHT_EMBOLDEN);
 	            if (s.equals("0")) {
-	                s = "1";
-	            }
+                    s = "1";
+                }
 	            else {
 	                s = "0";
 	            }
@@ -6312,7 +6305,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	                {
 	                    mSettings.setProperty(PROP_FONT_FACE, mEngine.getFontFaceList()[location]);
 	                    ReaderView.this.saveSettings(mSettings);
-	                    syncViewSettings(getSettings(), true, true);
+                        syncViewSettings(getSettings(), true, true);
 	                    mReaderMenu.setButtonFontFaceText(mEngine.getFontFaceList()[location]);
 	                }
 	            });
@@ -6334,7 +6327,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public void previousPage()
 	        {
-	            mCurrentTapHandler.performAction(ReaderAction.PAGE_UP, false);
+	            currentTapHandler.performAction(ReaderAction.PAGE_UP, false);
 
 	            PositionProperties pos = doc.getPositionProps(null);
 	            mReaderMenu.setPageIndex(pos.pageNumber + 1);
@@ -6344,7 +6337,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public void nextPage()
 	        {
-	            mCurrentTapHandler.performAction(ReaderAction.PAGE_DOWN, false);
+	            currentTapHandler.performAction(ReaderAction.PAGE_DOWN, false);
 
 	            PositionProperties pos = doc.getPositionProps(null);
 	            mReaderMenu.setPageIndex(pos.pageNumber + 1);
@@ -6428,70 +6421,64 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        {
 	            DialogReaderSettings dlg = new DialogReaderSettings(mActivity, Integer.valueOf(mSettings.getProperty(ReaderView.PROP_PAGE_MARGIN)));
 	            dlg.setOnPageMarginsListener(new DialogReaderSettings.onPageMarginsListener()
-	            {
+                {
 
-	                @Override
-	                public int onSetPageMargins(int margin)
-	                {
-	                    mSettings.setProperty(PROP_PAGE_MARGIN, String.valueOf(margin));
-	                    String page_margin = mSettings.getProperty(PROP_PAGE_MARGIN);
-	                    mSettings.setProperty(PROP_PAGE_MARGIN_LEFT, page_margin);
-	                    mSettings.setProperty(PROP_PAGE_MARGIN_RIGHT, page_margin);
-	                    mSettings.setProperty(PROP_PAGE_MARGIN_TOP, page_margin);
-	                    mSettings.setProperty(PROP_PAGE_MARGIN_BOTTOM, page_margin);
+                    @Override
+                    public int onSetPageMargins(int margin)
+                    {
+                        mSettings.setProperty(PROP_PAGE_MARGIN, String.valueOf(margin));
+                        String page_margin = mSettings.getProperty(PROP_PAGE_MARGIN);
+                        mSettings.setProperty(PROP_PAGE_MARGIN_LEFT, page_margin);
+                        mSettings.setProperty(PROP_PAGE_MARGIN_RIGHT, page_margin);
+                        mSettings.setProperty(PROP_PAGE_MARGIN_TOP, page_margin);
+                        mSettings.setProperty(PROP_PAGE_MARGIN_BOTTOM, page_margin);
 
-	                    ReaderView.this.saveSettings(mSettings);
-	                    return Integer.valueOf(page_margin);
-	                }
-	            });
+                        ReaderView.this.saveSettings(mSettings);
+                        return Integer.valueOf(page_margin);
+                    }
+                });
 	            dlg.show();
 	        }
 
-	        @Override
-	        public void ttsInit() {
-	            Log.d(TAG, "DCMD_TTS_PLAY: initializing TTS");
-	            if(!mActivity.initTTS(new TTS.OnTTSCreatedListener() {
-	                
-	                @Override
-	                public void onCreated(TTS tts) {
-	                    ttsControl = new TtsControl(tts);
-	                }
-	            })) {
-	                Log.d(TAG, "Cannot initilize TTS");
-	            }
-	            mReaderMenu.setTtsState(isSpeaking);
-	        }
+            @Override
+            public void ttsInit() {
+                Log.d(TAG, "DCMD_TTS_PLAY: initializing TTS");
+                if(!mActivity.initTTS(new TTS.OnTTSCreatedListener() {
+                    
+                    @Override
+                    public void onCreated(TTS tts) {
+                        ttsControl = new TtsControl(tts);
+                    }
+                })) {
+                    Log.d(TAG, "Cannot initilize TTS");
+                }
+                mReaderMenu.setTtsState(isSpeaking);
+            }
 
 
-	        @Override
-	        public void ttsPause() {
-	            ttsControl.pause();
-	            
-	        }
+            @Override
+            public void ttsPause() {
+                ttsControl.pause();
+                
+            }
 
-	        @Override
-	        public void ttsStop() {
-	            ttsControl.stop();
-	            stopTTS();
-	            stopTracking();
-	            
-	        }
+            @Override
+            public void ttsStop() {
+                ttsControl.stop();
+                stopTTS();
+                stopTracking();
+                
+            }
 
-	        @Override
-	        public void ttsSpeak() {
-	            ttsControl.toggleStartStop();
-	            
-	        }
+            @Override
+            public void ttsSpeak() {
+                ttsControl.toggleStartStop();
+                
+            }
 
 	    };
-	    mReaderMenu  = new DialogReaderMenu(mActivity, menuHandler);
-	    
-    }
 
-	
-	    
-	private void showDialogReaderMenu()
-	{
+        mReaderMenu = new DialogReaderMenu(mActivity, handler);
 	    mReaderMenu.show();
 	}
 
