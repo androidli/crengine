@@ -6487,6 +6487,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
                 
             }
 
+            @Override
+            public boolean canChangeFontFace() {
+            	return true;
+            }
+
 	    };
 
         mReaderMenu = new DialogReaderMenu(mActivity, handler);
