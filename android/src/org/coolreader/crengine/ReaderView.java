@@ -6318,7 +6318,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        }
 
 	        @Override
-	        public void dictionary()
+	        public void startDictionary()
 	        {
 	            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mActivity);
 	            String value = preferences.getString(ReaderSettingsActivity.sDictionaryList, ReaderSettingsActivity.getDictionaryList()[0].packageName);
