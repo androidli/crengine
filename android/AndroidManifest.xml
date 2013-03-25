@@ -85,7 +85,7 @@
                 <data android:mimeType="application/x-msword"/>
             </intent-filter>
         </activity>
-       
+        <activity android:name=".crengine.ReaderSettingsActivity" />
         
         <!-- Sync support -->
         <service android:name=".sync.SyncService" />

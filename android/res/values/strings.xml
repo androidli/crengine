@@ -496,4 +496,9 @@
     <string name="online_store_purchase_success">Book has been purchased.</string>
     <string name="online_store_purchase_new_balance">New balance:</string>
     <string name="options_app_plugins">Plugins</string>
+    <string name="settings_page_margin">Page margin</string>
+    <string name="settings_set_page_margin">Set the page margin</string>
+    <string name="settings_set_dictionary">Set dictionary</string>
+    <string name="settings_set_dictionary_title">Dictionary</string>
+    <string name="did_not_find_the_dictionary">Didn\'t find the dictionary</string>
 </resources>
