@@ -17,11 +17,16 @@ import org.coolreader.R;
 import org.coolreader.crengine.CoverpageManager.CoverpageBitmapReadyListener;
 import org.coolreader.crengine.Engine.HyphDict;
 import org.coolreader.crengine.InputDialog.InputHandler;
+import org.coolreader.crengine.ReaderSettingsActivity.DictionaryInfo;
 import org.coolreader.sync.ChangeInfo;
 import org.coolreader.sync.SyncServiceAccessor;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
+import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -31,6 +36,7 @@ import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.preference.PreferenceManager;
 import android.text.ClipboardManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -42,6 +48,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.onyx.android.sdk.data.cms.OnyxCmsCenter;
 import com.onyx.android.sdk.data.cms.OnyxMetadata;
@@ -59,7 +66,6 @@ import com.onyx.android.sdk.ui.dialog.DialogLoading;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.FontSizeProperty;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.LineSpacingProperty;
-import com.onyx.android.sdk.ui.dialog.DialogReaderSettings;
 import com.onyx.android.sdk.ui.util.BookmarkIcon;
 
 public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback, Settings {
@@ -6312,6 +6318,28 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        }
 
 	        @Override
+	        public void startDictionary()
+	        {
+	            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mActivity);
+	            String value = preferences.getString(ReaderSettingsActivity.sDictionaryList, ReaderSettingsActivity.getDictionaryList()[0].packageName);
+	            DictionaryInfo info = null;
+	            int length = ReaderSettingsActivity.getDictionaryList().length;
+	            for (int i = 0; i < length; i++) {
+	                if (value.equals(ReaderSettingsActivity.getDictionaryList()[i].packageName)) {
+	                    info = ReaderSettingsActivity.getDictionaryList()[i];
+	                    break;
+	                }
+	            }
+	            Intent intent = new Intent(info.action).setComponent(new ComponentName(
+	                    info.packageName, info.className));
+	            try {
+	            	mActivity.startActivity(intent);
+	            } catch ( ActivityNotFoundException e ) {
+	                Toast.makeText(mActivity, R.string.did_not_find_the_dictionary, Toast.LENGTH_LONG).show();
+	            }
+	        }
+	        
+	        @Override
 	        public void searchContent()
 	        {
 	            ReaderView.this.showSearchDialog(null);
@@ -6419,25 +6447,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public void showReaderSettings()
 	        {
-	            DialogReaderSettings dlg = new DialogReaderSettings(mActivity, Integer.valueOf(mSettings.getProperty(ReaderView.PROP_PAGE_MARGIN)));
-	            dlg.setOnPageMarginsListener(new DialogReaderSettings.onPageMarginsListener()
-                {
-
-                    @Override
-                    public int onSetPageMargins(int margin)
-                    {
-                        mSettings.setProperty(PROP_PAGE_MARGIN, String.valueOf(margin));
-                        String page_margin = mSettings.getProperty(PROP_PAGE_MARGIN);
-                        mSettings.setProperty(PROP_PAGE_MARGIN_LEFT, page_margin);
-                        mSettings.setProperty(PROP_PAGE_MARGIN_RIGHT, page_margin);
-                        mSettings.setProperty(PROP_PAGE_MARGIN_TOP, page_margin);
-                        mSettings.setProperty(PROP_PAGE_MARGIN_BOTTOM, page_margin);
-
-                        ReaderView.this.saveSettings(mSettings);
-                        return Integer.valueOf(page_margin);
-                    }
-                });
-	            dlg.show();
+	        	Intent intent = new Intent(mActivity, ReaderSettingsActivity.class);
+	        	mActivity.startActivity(intent);
 	        }
 
             @Override
