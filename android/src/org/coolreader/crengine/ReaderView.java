@@ -120,6 +120,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     }
     
     private ViewMode viewMode = ViewMode.PAGES;
+    private int[] fontSizes = new int[] { 7, 12, 17, 22, 27, 30, 33, 36, 38, 40 };
     
     public enum ReaderCommand
     {
@@ -6377,11 +6378,29 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        {
 	            return mActivity.isFullscreen();
 	        }
+	        private int getNextFontSize(int currentSize, boolean increase) {
+	        	int idx = 0;
+	            for ( ; idx < fontSizes.length ; idx++) {
+	            	if (fontSizes[idx] == currentSize) {
+	            		break;
+	            	}
+	            }
+	            if (idx <= 0) {
+	            	return increase ? fontSizes[idx+1] : fontSizes[0];
+	            } else if (idx >= (fontSizes.length - 1)) {
+	            	return increase ? fontSizes[fontSizes.length - 1] : fontSizes[idx-1];
+	            } else {
+	            	return increase ? fontSizes[idx+1] : fontSizes[idx-1];
+	            }
+	        }
 
 	        @Override
 	        public void increaseFontSize()
 	        {
-	            ReaderView.this.onAction(ReaderAction.ZOOM_IN);
+	        	int current_font_size = Integer.parseInt(mSettings.getProperty(PROP_FONT_SIZE));
+	        	mSettings.setProperty(PROP_FONT_SIZE, String.valueOf(getNextFontSize(current_font_size , true)));
+	        	ReaderView.this.saveSettings(mSettings);
+	        	syncViewSettings(getSettings(), true, true);
 	        }
 
 	        @Override
@@ -6414,7 +6433,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public void decreaseFontSize()
 	        {
-	            ReaderView.this.onAction(ReaderAction.ZOOM_OUT);
+	        	int current_font_size = Integer.parseInt(mSettings.getProperty(PROP_FONT_SIZE));
+	        	mSettings.setProperty(PROP_FONT_SIZE, String.valueOf(getNextFontSize(current_font_size , false)));
+	        	ReaderView.this.saveSettings(mSettings);
+	        	syncViewSettings(getSettings(), true, true);
 	        }
 
 	        @Override
