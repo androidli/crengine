@@ -17,7 +17,6 @@ import org.coolreader.R;
 import org.coolreader.crengine.CoverpageManager.CoverpageBitmapReadyListener;
 import org.coolreader.crengine.Engine.HyphDict;
 import org.coolreader.crengine.InputDialog.InputHandler;
-import org.coolreader.crengine.ReaderSettingsActivity.DictionaryInfo;
 import org.coolreader.sync.ChangeInfo;
 import org.coolreader.sync.SyncServiceAccessor;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
@@ -53,6 +52,8 @@ import android.widget.Toast;
 import com.onyx.android.sdk.data.cms.OnyxCmsCenter;
 import com.onyx.android.sdk.data.cms.OnyxMetadata;
 import com.onyx.android.sdk.data.cms.OnyxMetadata.BookProgress;
+import com.onyx.android.sdk.data.sys.OnyxDictionaryInfo;
+import com.onyx.android.sdk.data.sys.OnyxSysCenter;
 import com.onyx.android.sdk.data.util.RefValue;
 import com.onyx.android.sdk.ui.data.DirectoryItem;
 import com.onyx.android.sdk.ui.dialog.AnnotationItem;
@@ -6321,16 +6322,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public void startDictionary()
 	        {
-	            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(mActivity);
-	            String value = preferences.getString(ReaderSettingsActivity.sDictionaryList, ReaderSettingsActivity.getDictionaryList()[0].packageName);
-	            DictionaryInfo info = null;
-	            int length = ReaderSettingsActivity.getDictionaryList().length;
-	            for (int i = 0; i < length; i++) {
-	                if (value.equals(ReaderSettingsActivity.getDictionaryList()[i].packageName)) {
-	                    info = ReaderSettingsActivity.getDictionaryList()[i];
-	                    break;
-	                }
-	            }
+	            OnyxDictionaryInfo info = OnyxSysCenter.getDictionary();
 	            Intent intent = new Intent(info.action).setComponent(new ComponentName(
 	                    info.packageName, info.className));
 	            try {
