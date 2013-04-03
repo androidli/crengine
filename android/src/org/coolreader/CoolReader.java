@@ -495,18 +495,18 @@ public class CoolReader extends BaseActivity
 //			}
 //		});
 
-		waitForCRDBService(new Runnable() {
-			@Override
-			public void run() {
-				Services.getHistory().loadFromDB(getDB(), 200);
-				
-				mHomeFrame = new CRRootView(CoolReader.this);
-				Services.getCoverpageManager().addCoverpageReadyListener(mHomeFrame);
-				mHomeFrame.requestFocus();
-				showRootWindow();
-				setSystemUiVisibility();
-			}
-		});
+//		waitForCRDBService(new Runnable() {
+//			@Override
+//			public void run() {
+//				Services.getHistory().loadFromDB(getDB(), 200);
+//				
+//				mHomeFrame = new CRRootView(CoolReader.this);
+//				Services.getCoverpageManager().addCoverpageReadyListener(mHomeFrame);
+//				mHomeFrame.requestFocus();
+//				showRootWindow();
+//				setSystemUiVisibility();
+//			}
+//		});
 		
 		if (!isFirstStart)
 			return;

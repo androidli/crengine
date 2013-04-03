@@ -623,7 +623,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 		if (currentImageViewer != null)
 			return currentImageViewer.onKeyDown(keyCode, event);
-
 //		backKeyDownHere = false;
 		if ( event.getRepeatCount()==0 ) {
 			log.v("onKeyDown("+keyCode + ", " + event +")");
@@ -636,6 +635,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			    }
 			    // force saving position on BACK key press
 			    scheduleSaveCurrentPositionBookmark(1);
+			    mActivity.finish();
 			}
 		}
 		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
