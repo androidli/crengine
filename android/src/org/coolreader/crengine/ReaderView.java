@@ -6472,6 +6472,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        	Intent intent = new Intent(mActivity, ReaderSettingsActivity.class);
 	        	mActivity.startActivity(intent);
 	        }
+	        
+	        @Override
+	        public boolean ttsIsSpeaking()
+	        {
+	            // TODO Auto-generated method stub
+	            return false;
+	        }
 
             @Override
             public void ttsInit() {
