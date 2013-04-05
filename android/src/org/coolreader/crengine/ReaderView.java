@@ -6468,8 +6468,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public boolean ttsIsSpeaking()
 	        {
-	            // TODO Auto-generated method stub
-	            return false;
+	            return isSpeaking;
 	        }
 
             @Override
@@ -6484,7 +6483,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
                 })) {
                     Log.d(TAG, "Cannot initilize TTS");
                 }
-                mReaderMenu.setTtsState(isSpeaking);
             }
 
 
@@ -6887,7 +6885,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             } else {
                 start();
             }
-            mReaderMenu.setTtsState(isSpeaking);
         }
         
         @Override
