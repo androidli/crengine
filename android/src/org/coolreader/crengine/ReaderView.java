@@ -1166,7 +1166,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			currentImageViewer.close();
 	}
 
-	private TapHandler currentTapHandler = null;
+	private TapHandler currentTapHandler = new TapHandler();
 	public class TapHandler {
 
 		private final static int STATE_INITIAL = 0; // no events yet
@@ -1224,7 +1224,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			state = STATE_DONE;
 			unhiliteTapZone(); 
-			currentTapHandler = new TapHandler();
 			return true;
 		}
 
@@ -1232,8 +1231,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		private boolean performAction(final ReaderAction action, boolean checkForLinks) {
 			log.d("performAction on touch: " + action);
 			state = STATE_DONE;
-
-			currentTapHandler = new TapHandler();
 
 			if (!checkForLinks) {
 				onAction(action);
@@ -6505,6 +6502,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             public boolean canChangeFontFace() {
             	return true;
             }
+
+			@Override
+			public boolean ttsIsSpeaking() {
+				// TODO Auto-generated method stub
+				return false;
+			}
 
 	    };
 
