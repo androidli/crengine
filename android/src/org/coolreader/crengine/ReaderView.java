@@ -6461,6 +6461,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        	Intent intent = new Intent(mActivity, ReaderSettingsActivity.class);
 	        	mActivity.startActivity(intent);
 	        }
+	        
+	        @Override
+	        public boolean ttsIsSpeaking()
+	        {
+	            return isSpeaking;
+	        }
 
             @Override
             public void ttsInit() {
@@ -6474,7 +6480,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
                 })) {
                     Log.d(TAG, "Cannot initilize TTS");
                 }
-                mReaderMenu.setTtsState(isSpeaking);
             }
 
 
@@ -6883,7 +6888,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             } else {
                 start();
             }
-            mReaderMenu.setTtsState(isSpeaking);
         }
         
         @Override
