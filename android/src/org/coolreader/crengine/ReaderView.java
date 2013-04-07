@@ -623,7 +623,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 		if (currentImageViewer != null)
 			return currentImageViewer.onKeyDown(keyCode, event);
-
 //		backKeyDownHere = false;
 		if ( event.getRepeatCount()==0 ) {
 			log.v("onKeyDown("+keyCode + ", " + event +")");
@@ -636,6 +635,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			    }
 			    // force saving position on BACK key press
 			    scheduleSaveCurrentPositionBookmark(1);
+			    mActivity.finish();
 			}
 		}
 		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
@@ -1166,7 +1166,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			currentImageViewer.close();
 	}
 
-	private TapHandler currentTapHandler = null;
+	private TapHandler currentTapHandler = new TapHandler();
 	public class TapHandler {
 
 		private final static int STATE_INITIAL = 0; // no events yet
@@ -1224,7 +1224,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			state = STATE_DONE;
 			unhiliteTapZone(); 
-			currentTapHandler = new TapHandler();
 			return true;
 		}
 
@@ -1232,8 +1231,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		private boolean performAction(final ReaderAction action, boolean checkForLinks) {
 			log.d("performAction on touch: " + action);
 			state = STATE_DONE;
-
-			currentTapHandler = new TapHandler();
 
 			if (!checkForLinks) {
 				onAction(action);
