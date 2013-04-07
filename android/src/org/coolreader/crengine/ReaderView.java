@@ -6766,17 +6766,19 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private void setBookProgress()
 	{
 	    PositionProperties pos = doc.getPositionProps(null);
-	    OnyxMetadata metadata = OnyxCmsCenter.getMetadata(mActivity, mBookInfo.getFileInfo().getPathName());
+	    OnyxMetadata metadata = OnyxCmsCenter.getMetadata(mActivity, mBookInfo.getFileInfo().getBasePath());
 	    if (metadata != null) {
 	        BookProgress progress = new BookProgress(pos.pageNumber + 1, pos.pageCount);
 	        metadata.setProgress(progress);
 	        OnyxCmsCenter.updateMetadata(mActivity, metadata);
 	    }
 	    else {
-	        metadata = OnyxMetadata.createFromFile(mBookInfo.getFileInfo().getPathName());
-	        BookProgress progress = new BookProgress(pos.pageNumber + 1, pos.pageCount);
-	        metadata.setProgress(progress);
-	        OnyxCmsCenter.insertMetadata(mActivity, metadata);
+	        metadata = OnyxMetadata.createFromFile(mBookInfo.getFileInfo().getBasePath());
+	        if (metadata != null) {
+	        	BookProgress progress = new BookProgress(pos.pageNumber + 1, pos.pageCount);
+	        	metadata.setProgress(progress);
+	        	OnyxCmsCenter.insertMetadata(mActivity, metadata);
+	        }
 	    }
 	}
 
