@@ -6508,12 +6508,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             	return true;
             }
 
-			@Override
-			public boolean ttsIsSpeaking() {
-				// TODO Auto-generated method stub
-				return false;
-			}
-
 	    };
 
         mReaderMenu = new DialogReaderMenu(mActivity, handler);
