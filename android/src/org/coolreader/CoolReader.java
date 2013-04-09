@@ -61,6 +61,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.onyx.android.sdk.data.sys.OnyxSysCenter;
+
 public class CoolReader extends BaseActivity
 {
 	public static final Logger log = L.create("cr");
@@ -200,6 +202,8 @@ public class CoolReader extends BaseActivity
         }
         
 		showRootWindow();
+		
+		OnyxSysCenter.init(this);
 		
         log.i("CoolReader.onCreate() exiting");
     }
