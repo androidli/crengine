@@ -862,7 +862,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			ClipboardManager cm = mActivity.getClipboardmanager();
 			cm.setText(text);
 			log.i("Setting clipboard text: " + text);
-			mActivity.showToast("Selection text copied to clipboard");
+			mActivity.showToast(R.string.selection_copy_clip);
 		}
 	}
 	
@@ -1312,7 +1312,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 									}
 								}
 							}
-							mActivity.showToast("Cannot open link " + link);
+							mActivity.showToast(R.string.cannot_open_link + link);
 						}
 					}
 				}
@@ -1523,7 +1523,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					TOCDlg dlg = new TOCDlg(mActivity, view, toc, pos.pageNumber);
 					dlg.show();
 				} else {
-					mActivity.showToast("No Table of Contents found");
+					mActivity.showToast(R.string.table_contents_found);
 				}
 			}
 		});
@@ -1560,7 +1560,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			public void fail(Exception e) {
 				BackgroundThread.ensureGUI();
-				mActivity.showToast("Pattern not found");
+				mActivity.showToast(R.string.patter_not_found);
 			}
 			
 		});
@@ -2959,7 +2959,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return loadDocument(getManualFileName(), new Runnable() {
 			@Override
 			public void run() {
-				mActivity.showToast("Error while opening manual");
+				mActivity.showToast(R.string.error_open_manual);
 			}
 		});
 	}
@@ -3304,7 +3304,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		String normalized = mEngine.getPathCorrector().normalize(fileName);
 		if (normalized == null) {
 			log.e("Trying to load book from non-standard path " + fileName);
-			mActivity.showToast("Trying to load book from non-standard path " + fileName);
+			mActivity.showToast(R.string.try_load_book_stand + fileName);
 			hideProgress();
 			if (errorHandler != null)
 				errorHandler.run();
@@ -5191,7 +5191,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        mOpened = false;
 			drawPage();
 			hideProgress();
-			mActivity.showToast("Error while loading document");
+			mActivity.showToast(R.string.error_load_doc);
 			if ( errorHandler!=null ) {
 				log.e("LoadDocumentTask: Calling error handler");
 				errorHandler.run();

@@ -245,7 +245,7 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 			@Override
 			public void onError(int errorCode, String errorMessage) {
 				progress.hide();
-				mActivity.showToast("Error while loading book info");
+				mActivity.showToast(R.string.error_book_info);
 			}
 			
 			@Override
@@ -282,7 +282,7 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 	private void download(final boolean trial) {
 		File f = getBookFile(trial);
 		if (!ensureDownloadDirectoryExists(trial)) {
-			mActivity.showToast("Cannot create download directory " + f.getAbsolutePath());
+			mActivity.showToast(R.string.cannot_create_download_dir + f.getAbsolutePath());
 			return;
 		}
 		progress.show();
@@ -290,7 +290,7 @@ public class OnlineStoreBookInfoDialog extends BaseDialog {
 			@Override
 			public void onError(int errorCode, String errorMessage) {
 				progress.hide();
-				mActivity.showToast("Error while downloading book: " + errorMessage);
+				mActivity.showToast(R.string.error_download_book + errorMessage);
 			}
 			
 			@Override
