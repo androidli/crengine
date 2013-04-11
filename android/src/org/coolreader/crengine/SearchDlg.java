@@ -23,7 +23,7 @@ public class SearchDlg  extends BaseDialog {
 		// override it
     	String pattern = mEditView.getText().toString();
     	if ( pattern==null || pattern.length()==0 ) 
-    		mCoolReader.showToast("No pattern specified");
+    		mCoolReader.showToast(R.string.pattern_no_specifie);
     	else
     		mReaderView.findText( mEditView.getText().toString(), mReverse.isChecked(), !mCaseSensitive.isChecked() );
         cancel();

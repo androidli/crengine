@@ -39,7 +39,7 @@ public class AboutDialog extends BaseDialog implements TabContentFactory {
 		try {
 			mCoolReader.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + packageName)));
 		} catch ( ActivityNotFoundException e ) {
-			mCoolReader.showToast("Cannot run Android Market application");
+			mCoolReader.showToast(R.string.cannot_run_app);
 		}
 	}
 	
