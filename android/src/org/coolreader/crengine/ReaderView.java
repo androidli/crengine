@@ -25,7 +25,6 @@ import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -35,7 +34,6 @@ import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.preference.PreferenceManager;
 import android.text.ClipboardManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -55,6 +53,8 @@ import com.onyx.android.sdk.data.cms.OnyxMetadata.BookProgress;
 import com.onyx.android.sdk.data.sys.OnyxDictionaryInfo;
 import com.onyx.android.sdk.data.sys.OnyxSysCenter;
 import com.onyx.android.sdk.data.util.RefValue;
+import com.onyx.android.sdk.device.EpdController;
+import com.onyx.android.sdk.device.EpdController.UpdateMode;
 import com.onyx.android.sdk.ui.data.DirectoryItem;
 import com.onyx.android.sdk.ui.dialog.AnnotationItem;
 import com.onyx.android.sdk.ui.dialog.DialogDirectory;
@@ -67,6 +67,7 @@ import com.onyx.android.sdk.ui.dialog.DialogLoading;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.FontSizeProperty;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.LineSpacingProperty;
+import com.onyx.android.sdk.ui.dialog.DialogScreenRefresh;
 import com.onyx.android.sdk.ui.util.BookmarkIcon;
 
 public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback, Settings {
@@ -122,6 +123,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     
     private ViewMode viewMode = ViewMode.PAGES;
     private int[] fontSizes = new int[] { 7, 12, 17, 22, 27, 30, 33, 36, 38, 40 };
+    private int mPageRenderCount = 0;
     
     public enum ReaderCommand
     {
@@ -726,6 +728,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			repeatActionActive = true;
 			onAction(actionToRepeat, new Runnable() {
 				public void run() {
+					ReaderView.this.epdInvalidateHelper();
 					if ( trackedKeyEvent==event ) {
 						log.v("action is completed : " + actionToRepeat );
 						repeatActionActive = false;
@@ -1733,7 +1736,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public void onAction( final ReaderAction action )
 	{
-		onAction(action, null);
+		onAction(action , null);
 	}
 	public void onAction( final ReaderAction action, final Runnable onFinishHandler )
 	{
@@ -3733,6 +3736,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //			}
 //    		if (mOpened)
    			//hideProgress();
+			ReaderView.this.epdInvalidateHelper();
    			if ( doneHandler!=null )
    				doneHandler.run();
    			scheduleGc();
@@ -6285,8 +6289,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public void setScreenRefresh()
 	        {
-	            // TODO Auto-generated method stub
-
+	        	DialogScreenRefresh dlg = new DialogScreenRefresh(mActivity , 1);
+	        	dlg.show();
 	        }
 
 	        @Override
@@ -6361,7 +6365,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	            mReaderMenu.setPageIndex(pos.pageNumber + 1);
 	            mReaderMenu.setPageCount(pos.pageCount);
 	        }
-
+	        
 	        @Override
 	        public boolean isFullscreen()
 	        {
@@ -6894,4 +6898,17 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             
         }
     }
+    
+    private void epdInvalidateHelper()
+    {
+    	mPageRenderCount++;
+    	if (mPageRenderCount >= DialogScreenRefresh.RENDER_RESET_MAX_TIME) {
+    		EpdController.invalidate(this, UpdateMode.GC);
+    		mPageRenderCount = 0;
+    	}
+    	else {
+    		EpdController.invalidate(this, UpdateMode.GU);
+    	}
+    }
+    
 }
