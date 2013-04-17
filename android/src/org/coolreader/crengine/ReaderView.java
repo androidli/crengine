@@ -25,7 +25,6 @@ import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -35,7 +34,6 @@ import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.preference.PreferenceManager;
 import android.text.ClipboardManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -55,6 +53,7 @@ import com.onyx.android.sdk.data.cms.OnyxMetadata.BookProgress;
 import com.onyx.android.sdk.data.sys.OnyxDictionaryInfo;
 import com.onyx.android.sdk.data.sys.OnyxSysCenter;
 import com.onyx.android.sdk.data.util.RefValue;
+import com.onyx.android.sdk.tts.OnyxTtsSpeaker;
 import com.onyx.android.sdk.ui.data.DirectoryItem;
 import com.onyx.android.sdk.ui.dialog.AnnotationItem;
 import com.onyx.android.sdk.ui.dialog.DialogDirectory;
@@ -2588,7 +2587,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	
 	private TTSToolbarDlg ttsToolbar;
-	private TtsControl ttsControl;
+	private TtsController ttsControl;
 	
 	public void stopTTS() {
 		if (ttsToolbar != null)
@@ -6465,20 +6464,18 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public boolean ttsIsSpeaking()
 	        {
-	            return isSpeaking;
+	            if (ttsControl == null) {
+	                return false;
+	            }
+	            return ttsControl.isSpeaking();
 	        }
 
             @Override
             public void ttsInit() {
                 Log.d(TAG, "DCMD_TTS_PLAY: initializing TTS");
-                if(!mActivity.initTTS(new TTS.OnTTSCreatedListener() {
-                    
-                    @Override
-                    public void onCreated(TTS tts) {
-                        ttsControl = new TtsControl(tts);
-                    }
-                })) {
-                    Log.d(TAG, "Cannot initilize TTS");
+                if (ttsControl == null) {
+                    ttsControl = new TtsController(ReaderView.this);
+                    ttsControl.init();
                 }
             }
 
@@ -6486,7 +6483,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             @Override
             public void ttsPause() {
                 ttsControl.pause();
-                
             }
 
             @Override
@@ -6494,13 +6490,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
                 ttsControl.stop();
                 stopTTS();
                 stopTracking();
-                
             }
 
             @Override
             public void ttsSpeak() {
-                ttsControl.toggleStartStop();
-                
+                ttsControl.speak();
             }
 
             @Override
@@ -6781,117 +6775,112 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        }
 	    }
 	}
-
-    //add by dxwts
-	private boolean isSpeaking; 
-    private class TtsControl implements TTS.OnUtteranceCompletedListener
-    {
-        
-        private TTS mTTS = null;
-        public TtsControl(TTS tts) {
-            mTTS = tts;
-            mTTS.setOnUtteranceCompletedListener(this);
-            setReaderMode();
-        }
-        
-        private boolean closed; 
-        public void stopAndClose() {
-            if (closed)
-                return;
-            isSpeaking = false;
-            closed = true;
-            BackgroundThread.instance().executeGUI(new Runnable() {
+	
+	private static class TtsController 
+	{
+	    private ReaderView mReaderView = null;
+        private boolean changedPageMode;
+        private Selection currentSelection;
+	    private OnyxTtsSpeaker mTtsSpeaker = null;
+	    
+	    public TtsController(ReaderView readerView)
+	    {
+	        mReaderView = readerView;
+	    }
+	    
+	    public boolean isSpeaking()
+	    {
+	        if (mTtsSpeaker == null) {
+	            return false;
+	        }
+	        
+	        return mTtsSpeaker.isActive() && !mTtsSpeaker.isPaused();
+	    }
+	    
+	    public void init()
+	    {
+	        if (mTtsSpeaker == null) {
+	            mTtsSpeaker = new OnyxTtsSpeaker(mReaderView.getContext());
+	            mTtsSpeaker.setOnSpeakerCompletionListener(new OnyxTtsSpeaker.OnSpeakerCompletionListener()
+	            {
+	                
+	                @Override
+	                public void onSpeakerCompletion()
+	                {
+	                    if (mTtsSpeaker.isActive()) {
+	                        TtsController.this.moveSelection(ReaderCommand.DCMD_SELECT_NEXT_SENTENCE);
+	                    }
+	                }
+	            });
+	            
+	            String oldViewSetting = mReaderView.getSetting( ReaderView.PROP_PAGE_VIEW_MODE );
+	            if ( "1".equals(oldViewSetting) ) {
+	                changedPageMode = true;
+	                mReaderView.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "0");
+	            }
+	            
+	            this.moveSelection( ReaderCommand.DCMD_SELECT_FIRST_SENTENCE );
+	        }
+	    }
+	    
+	    public void speak()
+	    {
+	        if (!mTtsSpeaker.isSpeaking()) {
+	            mTtsSpeaker.stop();
+	            if (currentSelection == null) {
+	                this.moveSelection( ReaderCommand.DCMD_SELECT_FIRST_SENTENCE );
+	            }
+	            else {
+	                mTtsSpeaker.startTts(currentSelection.text);
+	            }
+	        }
+	        else {
+	            mTtsSpeaker.resume();
+	        }
+	    }
+	    
+	    public void pause()
+	    {
+	        mTtsSpeaker.pause();
+	    }
+	    
+	    public void stop()
+	    {
+	        mTtsSpeaker.stop();
+	        currentSelection = null;
+	        
+	        BackgroundThread.instance().executeGUI(new Runnable() {
                 @Override
                 public void run() {
-                    stop();
-                    restoreReaderMode();
-                    ReaderView.this.clearSelection();
-                    ReaderView.this.save();
+                    if (changedPageMode) {
+                        mReaderView.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "1");
+                    }
+                    mReaderView.clearSelection();
+                    mReaderView.save();
                 }
             });
-        }
+	    }
         
-        private boolean changedPageMode;
-        private void setReaderMode()
+        private void moveSelection( ReaderCommand cmd )
         {
-            String oldViewSetting = ReaderView.this.getSetting( ReaderView.PROP_PAGE_VIEW_MODE );
-            if ( "1".equals(oldViewSetting) ) {
-                changedPageMode = true;
-                ReaderView.this.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "0");
-            }
-            moveSelection( ReaderCommand.DCMD_SELECT_FIRST_SENTENCE );
-        }
-        
-        private void restoreReaderMode()
-        {
-            if ( changedPageMode ) {
-                ReaderView.this.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "1");
-            }
-        }
-        
-        private Selection currentSelection;
-        
-        public void moveSelection( ReaderCommand cmd )
-        {
-            ReaderView.this.moveSelection(cmd, 0, new ReaderView.MoveSelectionCallback() {
+            mReaderView.moveSelection(cmd, 0, new ReaderView.MoveSelectionCallback() {
                 
                 @Override
                 public void onNewSelection(Selection selection) {
                     Log.d("cr3", "onNewSelection: " + selection.text);
                     currentSelection = selection;
-                    if ( isSpeaking )
-                        say( currentSelection );
+                    if ( mTtsSpeaker.isActive() && !mTtsSpeaker.isPaused() ) {
+                        mTtsSpeaker.startTts(currentSelection.text);
+                    }
                 }
                 
                 @Override
                 public void onFail() {
                     Log.d("cr3", "fail()");
-                    stop();
-                    //currentSelection = null;
+                    TtsController.this.stop();
                 }
             });
         }
-        
-        private void say( Selection selection ) {
-            HashMap<String, String> params = new HashMap<String, String>();
-            params.put(TTS.KEY_PARAM_UTTERANCE_ID, "cr3UtteranceId");
-            mTTS.speak(selection.text, TTS.QUEUE_ADD, params);
-        }
-        
-        public void start() {
-            if ( currentSelection==null )
-                return;
-            
-            isSpeaking = true;
-            say( currentSelection );
-        }
-        
-        public void stop() {
-            isSpeaking = false;
-            if ( mTTS.isSpeaking() ) {
-                mTTS.stop();
-            }
-        }
-        
-        public void pause() {
-            if (isSpeaking)
-                toggleStartStop();
-        }
-        
-        public void toggleStartStop() {
-            if ( isSpeaking ) {
-                stop();
-            } else {
-                start();
-            }
-        }
-        
-        @Override
-        public void onUtteranceCompleted(String utteranceId) {
-            Log.d("cr3", "onUtteranceCompleted " + utteranceId);
-            if (isSpeaking )
-                moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
-            
-        }
-    }
+	}
+    
 }
