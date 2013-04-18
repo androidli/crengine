@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -53,9 +52,9 @@ import com.onyx.android.sdk.data.cms.OnyxMetadata.BookProgress;
 import com.onyx.android.sdk.data.sys.OnyxDictionaryInfo;
 import com.onyx.android.sdk.data.sys.OnyxSysCenter;
 import com.onyx.android.sdk.data.util.RefValue;
-import com.onyx.android.sdk.tts.OnyxTtsSpeaker;
 import com.onyx.android.sdk.device.EpdController;
 import com.onyx.android.sdk.device.EpdController.UpdateMode;
+import com.onyx.android.sdk.tts.OnyxTtsSpeaker;
 import com.onyx.android.sdk.ui.data.DirectoryItem;
 import com.onyx.android.sdk.ui.dialog.AnnotationItem;
 import com.onyx.android.sdk.ui.dialog.DialogDirectory;
@@ -2597,6 +2596,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public void stopTTS() {
 		if (ttsToolbar != null)
 			ttsToolbar.pause();
+		
+		if (ttsControl != null) {
+		    ttsControl.shutdown();
+		    ttsControl = null;
+		}
 	}
 	
 	public void doEngineCommand( final ReaderCommand cmd, final int param )
@@ -5632,6 +5636,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public void destroy()
     {
     	log.i("ReaderView.destroy() is called");
+    	if (ttsControl != null) {
+    	    ttsControl.shutdown();
+    	    ttsControl = null;
+    	}
+    	
     	if (mInitialized) {
         	//close();
         	BackgroundThread.instance().postBackground(new Runnable() {
@@ -6485,7 +6494,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
                 }
             }
 
-
             @Override
             public void ttsPause() {
                 ttsControl.pause();
@@ -6494,8 +6502,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             @Override
             public void ttsStop() {
                 ttsControl.stop();
-                stopTTS();
-                stopTracking();
             }
 
             @Override
@@ -6831,17 +6837,17 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    
 	    public void speak()
 	    {
-	        if (!mTtsSpeaker.isSpeaking()) {
-	            mTtsSpeaker.stop();
-	            if (currentSelection == null) {
-	                this.moveSelection( ReaderCommand.DCMD_SELECT_FIRST_SENTENCE );
-	            }
-	            else {
-	                mTtsSpeaker.startTts(currentSelection.text);
-	            }
-	        }
-	        else {
+	        if (mTtsSpeaker.isPaused()) {
 	            mTtsSpeaker.resume();
+	        } 
+	        else {
+	            mTtsSpeaker.stop();
+                if (currentSelection == null) {
+                    this.moveSelection( ReaderCommand.DCMD_SELECT_FIRST_SENTENCE );
+                }
+                else {
+                    mTtsSpeaker.startTts(currentSelection.text);
+                }
 	        }
 	    }
 	    
@@ -6852,6 +6858,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    
 	    public void stop()
 	    {
+	        if (mTtsSpeaker == null) {
+	            return;
+	        }
+	        
 	        mTtsSpeaker.stop();
 	        currentSelection = null;
 	        
@@ -6865,6 +6875,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
                     mReaderView.save();
                 }
             });
+	    }
+	    
+	    public void shutdown()
+	    {
+	        if (mTtsSpeaker == null) {
+	            return;
+	        }
+	        
+	        this.stop();
+	        mTtsSpeaker.shutdown();
 	    }
         
         private void moveSelection( ReaderCommand cmd )
