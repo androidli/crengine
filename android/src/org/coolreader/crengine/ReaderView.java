@@ -6842,6 +6842,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        } 
 	        else {
 	            mTtsSpeaker.stop();
+	            
+	            String oldViewSetting = mReaderView.getSetting( ReaderView.PROP_PAGE_VIEW_MODE );
+                if ( "1".equals(oldViewSetting) ) {
+                    changedPageMode = true;
+                    mReaderView.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "0");
+                }
+                
                 if (currentSelection == null) {
                     this.moveSelection( ReaderCommand.DCMD_SELECT_FIRST_SENTENCE );
                 }
