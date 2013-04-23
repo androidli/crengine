@@ -46,9 +46,9 @@ import android.view.SurfaceView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.onyx.android.sdk.data.cms.OnyxBookProgress;
 import com.onyx.android.sdk.data.cms.OnyxCmsCenter;
 import com.onyx.android.sdk.data.cms.OnyxMetadata;
-import com.onyx.android.sdk.data.cms.OnyxMetadata.BookProgress;
 import com.onyx.android.sdk.data.sys.OnyxDictionaryInfo;
 import com.onyx.android.sdk.data.sys.OnyxSysCenter;
 import com.onyx.android.sdk.data.util.RefValue;
@@ -6774,14 +6774,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	    PositionProperties pos = doc.getPositionProps(null);
 	    OnyxMetadata metadata = OnyxCmsCenter.getMetadata(mActivity, mBookInfo.getFileInfo().getBasePath());
 	    if (metadata != null) {
-	        BookProgress progress = new BookProgress(pos.pageNumber + 1, pos.pageCount);
+	        OnyxBookProgress progress = new OnyxBookProgress(pos.pageNumber + 1, pos.pageCount);
 	        metadata.setProgress(progress);
 	        OnyxCmsCenter.updateMetadata(mActivity, metadata);
 	    }
 	    else {
 	        metadata = OnyxMetadata.createFromFile(mBookInfo.getFileInfo().getBasePath());
 	        if (metadata != null) {
-	        	BookProgress progress = new BookProgress(pos.pageNumber + 1, pos.pageCount);
+	        	OnyxBookProgress progress = new OnyxBookProgress(pos.pageNumber + 1, pos.pageCount);
 	        	metadata.setProgress(progress);
 	        	OnyxCmsCenter.insertMetadata(mActivity, metadata);
 	        }
