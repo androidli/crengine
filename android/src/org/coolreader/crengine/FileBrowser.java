@@ -272,7 +272,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				mActivity.loadDocument(selectedItem);
 			return true;
 		case R.id.book_sort_order:
-			mActivity.showToast("Sorry, sort order selection is not yet implemented");
+			mActivity.showToast(R.string.sort_not_yet_imp);
 			return true;
 		case R.id.book_recent_books:
 			showRecentBooks();
@@ -287,7 +287,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			if (mActivity.isBookOpened())
 				mActivity.showReader();
 			else
-				mActivity.showToast("No book opened");
+				mActivity.showToast(R.string.no_book_open);
 			return true;
 		case R.id.book_delete:
 			log.d("book_delete menu item selected");
@@ -443,7 +443,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			@Override
 			public void onError(int errorCode, String description) {
 				progress.hide();
-				mActivity.showToast("Cannot read from server");
+				mActivity.showToast(R.string.cannot_read_server);
 			}
 		});
 	}
@@ -637,7 +637,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 							fileOrDir.replaceItems(items);
 							showDirectoryInternal(fileOrDir, null);
 						} else {
-							mActivity.showToast("No OPDS entries found");
+							mActivity.showToast(R.string.no_opds_found);
 						}
 					}
 
@@ -709,7 +709,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 				downloadTask.run();
 			} catch (MalformedURLException e) {
 				log.e("MalformedURLException: " + url);
-				mActivity.showToast("Wrong URI: " + url);
+				mActivity.showToast(R.string.wrong_uri + url);
 			}
 		}
 	}
@@ -1373,7 +1373,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 	protected void showOnlineCatalogBookDialog(final FileInfo book) {
 		OnlineStoreWrapper plugin = getPlugin(book);
 		if (plugin == null) {
-			mActivity.showToast("cannot find plugin");
+			mActivity.showToast(R.string.cannot_find_plugin);
 			return;
 		}
 		String bookId = book.getOnlineCatalogPluginId();
@@ -1382,7 +1382,7 @@ public class FileBrowser extends LinearLayout implements FileInfoChangeListener 
 			@Override
 			public void onError(int errorCode, String errorMessage) {
 				progress.hide();
-				mActivity.showToast("Error while loading book info");
+				mActivity.showToast(R.string.error_book_info);
 			}
 			
 			@Override

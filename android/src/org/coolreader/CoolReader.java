@@ -61,6 +61,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.onyx.android.sdk.data.sys.OnyxSysCenter;
+
 public class CoolReader extends BaseActivity
 {
 	public static final Logger log = L.create("cr");
@@ -200,6 +202,8 @@ public class CoolReader extends BaseActivity
         }
         
 		showRootWindow();
+		
+		OnyxSysCenter.init(this);
 		
         log.i("CoolReader.onCreate() exiting");
     }
@@ -376,7 +380,7 @@ public class CoolReader extends BaseActivity
 					loadDocument(fn, new Runnable() {
 						public void run() {
 							log.v("onNewIntent, loadDocument error handler called");
-							showToast("Error occured while loading " + fn);
+							showToast(R.string.error_occured_loading + fn);
 							Services.getEngine().hideProgress();
 						}
 					});
@@ -495,18 +499,18 @@ public class CoolReader extends BaseActivity
 //			}
 //		});
 
-		waitForCRDBService(new Runnable() {
-			@Override
-			public void run() {
-				Services.getHistory().loadFromDB(getDB(), 200);
-				
-				mHomeFrame = new CRRootView(CoolReader.this);
-				Services.getCoverpageManager().addCoverpageReadyListener(mHomeFrame);
-				mHomeFrame.requestFocus();
-				showRootWindow();
-				setSystemUiVisibility();
-			}
-		});
+//		waitForCRDBService(new Runnable() {
+//			@Override
+//			public void run() {
+//				Services.getHistory().loadFromDB(getDB(), 200);
+//				
+//				mHomeFrame = new CRRootView(CoolReader.this);
+//				Services.getCoverpageManager().addCoverpageReadyListener(mHomeFrame);
+//				mHomeFrame.requestFocus();
+//				showRootWindow();
+//				setSystemUiVisibility();
+//			}
+//		});
 		
 		if (!isFirstStart)
 			return;
@@ -1179,7 +1183,7 @@ public class CoolReader extends BaseActivity
 			try {
 				startActivity( intent0 );
 			} catch ( ActivityNotFoundException e ) {
-				showToast("Dictionary \"" + currentDict.name + "\" is not installed");
+			    showToast(R.string.dictionary_head + " \"" + currentDict.name + "\" " +R.string.not_installed);
 			}
 			break;
 		case 1:
@@ -1202,7 +1206,7 @@ public class CoolReader extends BaseActivity
 			{
 				startActivity(intent1);
 			} catch ( ActivityNotFoundException e ) {
-				showToast("Dictionary \"" + currentDict.name + "\" is not installed");
+			    showToast(R.string.dictionary_head + " \"" + currentDict.name + "\" " +R.string.not_installed);
 			}
 			break;
 		case 2:
@@ -1220,7 +1224,7 @@ public class CoolReader extends BaseActivity
 	        try {
 	        	startActivityForResult(intent2, DICTAN_ARTICLE_REQUEST_CODE);
 	        } catch (ActivityNotFoundException e) {
-				showToast("Dictionary \"" + currentDict.name + "\" is not installed");
+				showToast(R.string.dictionary_head + " \"" + currentDict.name + "\" " +R.string.not_installed);
 	        }
 			break;
 		}
@@ -1252,7 +1256,7 @@ public class CoolReader extends BaseActivity
 					
 			// Must never occur
 			default: 
-				showToast("Unknown Result Code: " + resultCode);
+				showToast(R.string.unknown_code + resultCode);
 				break;
 			}
         }
@@ -1340,7 +1344,7 @@ public class CoolReader extends BaseActivity
     	String mPayloadContents = null;
     	String mSku = itemName;
         if (!mBillingService.requestPurchase(mSku, mPayloadContents)) {
-        	showToast("Purchase is failed");
+        	showToast(R.string.purchase_failed);
         }
     	return true;
     }
@@ -1471,7 +1475,7 @@ public class CoolReader extends BaseActivity
 		if ( ttsError || !TTS.isFound() ) {
 			if ( !ttsError ) {
 				ttsError = true;
-				showToast("TTS is not available");
+				showToast(R.string.tts_not_available);
 			}
 			return false;
 		}
@@ -1485,10 +1489,10 @@ public class CoolReader extends BaseActivity
 			return true;
 		}
 		if ( ttsInitialized && tts!=null ) {
-			showToast("TTS initialization is already called");
+			showToast(R.string.tts_init_already_called);
 			return false;
 		}
-		showToast("Initializing TTS");
+		showToast(R.string.tts_initi);
     	tts = new TTS(this, new TTS.OnInitListener() {
 			@Override
 			public void onInit(int status) {
@@ -1605,7 +1609,7 @@ public class CoolReader extends BaseActivity
 			startActivity(i);
 		} catch (Exception e) {
 			log.e("Exception " + e + " while trying to open URL " + url);
-			showToast("Cannot open URL " + url);
+			showToast(R.string.cannot_open_url + url);
 		}
 	}
 

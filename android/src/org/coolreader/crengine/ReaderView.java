@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -21,7 +20,10 @@ import org.coolreader.sync.ChangeInfo;
 import org.coolreader.sync.SyncServiceAccessor;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
+import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -42,11 +44,17 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
+import com.onyx.android.sdk.data.cms.OnyxBookProgress;
 import com.onyx.android.sdk.data.cms.OnyxCmsCenter;
 import com.onyx.android.sdk.data.cms.OnyxMetadata;
-import com.onyx.android.sdk.data.cms.OnyxMetadata.BookProgress;
+import com.onyx.android.sdk.data.sys.OnyxDictionaryInfo;
+import com.onyx.android.sdk.data.sys.OnyxSysCenter;
 import com.onyx.android.sdk.data.util.RefValue;
+import com.onyx.android.sdk.device.EpdController;
+import com.onyx.android.sdk.device.EpdController.UpdateMode;
+import com.onyx.android.sdk.tts.OnyxTtsSpeaker;
 import com.onyx.android.sdk.ui.data.DirectoryItem;
 import com.onyx.android.sdk.ui.dialog.AnnotationItem;
 import com.onyx.android.sdk.ui.dialog.DialogDirectory;
@@ -59,7 +67,7 @@ import com.onyx.android.sdk.ui.dialog.DialogLoading;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.FontSizeProperty;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.LineSpacingProperty;
-import com.onyx.android.sdk.ui.dialog.DialogReaderSettings;
+import com.onyx.android.sdk.ui.dialog.DialogScreenRefresh;
 import com.onyx.android.sdk.ui.util.BookmarkIcon;
 
 public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback, Settings {
@@ -107,7 +115,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public static final int SEL_CMD_NEXT_SENTENCE = 2;
     public static final int SEL_CMD_PREV_SENTENCE = 3;
     
-    
     public enum ViewMode
     {
     	PAGES,
@@ -115,6 +122,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     }
     
     private ViewMode viewMode = ViewMode.PAGES;
+    private int[] fontSizes = new int[] { 7, 12, 17, 22, 27, 30, 33, 36, 38, 40 };
+    private int mPageRenderCount = 0;
     
     public enum ReaderCommand
     {
@@ -413,6 +422,21 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private int currentDoubleClickActionKeyCode = 0;
 	@Override
 	public boolean onKeyUp(int keyCode, final KeyEvent event) {
+		Log.d(TAG, "onKeyUp");
+		switch (keyCode) {
+		case KeyEvent.KEYCODE_DPAD_CENTER:
+		case KeyEvent.KEYCODE_ENTER:
+			Bookmark bm = doc.getCurrentPageBookmark();
+			for (int i = 0; i < mBookInfo.getBookmarkCount(); i++) {
+				if (mBookInfo.getBookmark(i).getPosText()
+						.equals(bm.getPosText())) {
+					removeBookmark(mBookInfo.getBookmark(i));
+					return true;
+				}
+			}
+			addBookmark(bm);
+			return true;
+		}
 		if (keyCode == 0)
 			keyCode = event.getScanCode();
 		mActivity.onUserActivity();
@@ -593,7 +617,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	@Override
 	public boolean onKeyDown(int keyCode, final KeyEvent event) {
-		
 		if (keyCode == 0)
 			keyCode = event.getScanCode();
 		keyCode = translateKeyCode(keyCode);
@@ -602,7 +625,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		
 		if (currentImageViewer != null)
 			return currentImageViewer.onKeyDown(keyCode, event);
-
 //		backKeyDownHere = false;
 		if ( event.getRepeatCount()==0 ) {
 			log.v("onKeyDown("+keyCode + ", " + event +")");
@@ -615,6 +637,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			    }
 			    // force saving position on BACK key press
 			    scheduleSaveCurrentPositionBookmark(1);
+			    mActivity.finish();
 			}
 		}
 		if ( keyCode==KeyEvent.KEYCODE_POWER || keyCode==KeyEvent.KEYCODE_ENDCALL ) {
@@ -705,6 +728,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			repeatActionActive = true;
 			onAction(actionToRepeat, new Runnable() {
 				public void run() {
+					ReaderView.this.epdInvalidateHelper();
 					if ( trackedKeyEvent==event ) {
 						log.v("action is completed : " + actionToRepeat );
 						repeatActionActive = false;
@@ -841,7 +865,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			ClipboardManager cm = mActivity.getClipboardmanager();
 			cm.setText(text);
 			log.i("Setting clipboard text: " + text);
-			mActivity.showToast("Selection text copied to clipboard");
+			mActivity.showToast(R.string.selection_copy_clip);
 		}
 	}
 	
@@ -1145,7 +1169,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			currentImageViewer.close();
 	}
 
-	private TapHandler currentTapHandler = null;
+	private TapHandler currentTapHandler = new TapHandler();
 	public class TapHandler {
 
 		private final static int STATE_INITIAL = 0; // no events yet
@@ -1203,7 +1227,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			state = STATE_DONE;
 			unhiliteTapZone(); 
-			currentTapHandler = new TapHandler();
 			return true;
 		}
 
@@ -1211,8 +1234,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		private boolean performAction(final ReaderAction action, boolean checkForLinks) {
 			log.d("performAction on touch: " + action);
 			state = STATE_DONE;
-
-			currentTapHandler = new TapHandler();
 
 			if (!checkForLinks) {
 				onAction(action);
@@ -1294,7 +1315,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 									}
 								}
 							}
-							mActivity.showToast("Cannot open link " + link);
+							mActivity.showToast(R.string.cannot_open_link + link);
 						}
 					}
 				}
@@ -1505,7 +1526,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 					TOCDlg dlg = new TOCDlg(mActivity, view, toc, pos.pageNumber);
 					dlg.show();
 				} else {
-					mActivity.showToast("No Table of Contents found");
+					mActivity.showToast(R.string.table_contents_found);
 				}
 			}
 		});
@@ -1542,7 +1563,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			}
 			public void fail(Exception e) {
 				BackgroundThread.ensureGUI();
-				mActivity.showToast("Pattern not found");
+				mActivity.showToast(R.string.patter_not_found);
 			}
 			
 		});
@@ -1715,7 +1736,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public void onAction( final ReaderAction action )
 	{
-		onAction(action, null);
+		onAction(action , null);
 	}
 	public void onAction( final ReaderAction action, final Runnable onFinishHandler )
 	{
@@ -2570,11 +2591,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	
 	private TTSToolbarDlg ttsToolbar;
-	private TtsControl ttsControl;
+	private TtsController ttsControl;
 	
 	public void stopTTS() {
 		if (ttsToolbar != null)
 			ttsToolbar.pause();
+		
+		if (ttsControl != null) {
+		    ttsControl.shutdown();
+		    ttsControl = null;
+		}
 	}
 	
 	public void doEngineCommand( final ReaderCommand cmd, final int param )
@@ -2941,7 +2967,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		return loadDocument(getManualFileName(), new Runnable() {
 			@Override
 			public void run() {
-				mActivity.showToast("Error while opening manual");
+				mActivity.showToast(R.string.error_open_manual);
 			}
 		});
 	}
@@ -3286,7 +3312,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		String normalized = mEngine.getPathCorrector().normalize(fileName);
 		if (normalized == null) {
 			log.e("Trying to load book from non-standard path " + fileName);
-			mActivity.showToast("Trying to load book from non-standard path " + fileName);
+			mActivity.showToast(R.string.try_load_book_stand + fileName);
 			hideProgress();
 			if (errorHandler != null)
 				errorHandler.run();
@@ -3715,6 +3741,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //			}
 //    		if (mOpened)
    			//hideProgress();
+			ReaderView.this.epdInvalidateHelper();
    			if ( doneHandler!=null )
    				doneHandler.run();
    			scheduleGc();
@@ -5173,7 +5200,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        mOpened = false;
 			drawPage();
 			hideProgress();
-			mActivity.showToast("Error while loading document");
+			mActivity.showToast(R.string.error_load_doc);
 			if ( errorHandler!=null ) {
 				log.e("LoadDocumentTask: Calling error handler");
 				errorHandler.run();
@@ -5609,6 +5636,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     public void destroy()
     {
     	log.i("ReaderView.destroy() is called");
+    	if (ttsControl != null) {
+    	    ttsControl.shutdown();
+    	    ttsControl = null;
+    	}
+    	
     	if (mInitialized) {
         	//close();
         	BackgroundThread.instance().postBackground(new Runnable() {
@@ -6267,8 +6299,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public void setScreenRefresh()
 	        {
-	            // TODO Auto-generated method stub
-
+	        	DialogScreenRefresh dlg = new DialogScreenRefresh(mActivity , 1);
+	        	dlg.show();
 	        }
 
 	        @Override
@@ -6298,6 +6330,19 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	            });
 	        }
 
+	        @Override
+	        public void startDictionary()
+	        {
+	            OnyxDictionaryInfo info = OnyxSysCenter.getDictionary();
+	            Intent intent = new Intent(info.action).setComponent(new ComponentName(
+	                    info.packageName, info.className));
+	            try {
+	            	mActivity.startActivity(intent);
+	            } catch ( ActivityNotFoundException e ) {
+	                Toast.makeText(mActivity, R.string.did_not_find_the_dictionary, Toast.LENGTH_LONG).show();
+	            }
+	        }
+	        
 	        @Override
 	        public void searchContent()
 	        {
@@ -6330,17 +6375,35 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	            mReaderMenu.setPageIndex(pos.pageNumber + 1);
 	            mReaderMenu.setPageCount(pos.pageCount);
 	        }
-
+	        
 	        @Override
 	        public boolean isFullscreen()
 	        {
 	            return mActivity.isFullscreen();
 	        }
+	        private int getNextFontSize(int currentSize, boolean increase) {
+	        	int idx = 0;
+	            for ( ; idx < fontSizes.length ; idx++) {
+	            	if (fontSizes[idx] == currentSize) {
+	            		break;
+	            	}
+	            }
+	            if (idx <= 0) {
+	            	return increase ? fontSizes[idx+1] : fontSizes[0];
+	            } else if (idx >= (fontSizes.length - 1)) {
+	            	return increase ? fontSizes[fontSizes.length - 1] : fontSizes[idx-1];
+	            } else {
+	            	return increase ? fontSizes[idx+1] : fontSizes[idx-1];
+	            }
+	        }
 
 	        @Override
 	        public void increaseFontSize()
 	        {
-	            ReaderView.this.onAction(ReaderAction.ZOOM_IN);
+	        	int current_font_size = Integer.parseInt(mSettings.getProperty(PROP_FONT_SIZE));
+	        	mSettings.setProperty(PROP_FONT_SIZE, String.valueOf(getNextFontSize(current_font_size , true)));
+	        	ReaderView.this.saveSettings(mSettings);
+	        	syncViewSettings(getSettings(), true, true);
 	        }
 
 	        @Override
@@ -6373,7 +6436,10 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public void decreaseFontSize()
 	        {
-	            ReaderView.this.onAction(ReaderAction.ZOOM_OUT);
+	        	int current_font_size = Integer.parseInt(mSettings.getProperty(PROP_FONT_SIZE));
+	        	mSettings.setProperty(PROP_FONT_SIZE, String.valueOf(getNextFontSize(current_font_size , false)));
+	        	ReaderView.this.saveSettings(mSettings);
+	        	syncViewSettings(getSettings(), true, true);
 	        }
 
 	        @Override
@@ -6406,61 +6472,46 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public void showReaderSettings()
 	        {
-	            DialogReaderSettings dlg = new DialogReaderSettings(mActivity, Integer.valueOf(mSettings.getProperty(ReaderView.PROP_PAGE_MARGIN)));
-	            dlg.setOnPageMarginsListener(new DialogReaderSettings.onPageMarginsListener()
-                {
-
-                    @Override
-                    public int onSetPageMargins(int margin)
-                    {
-                        mSettings.setProperty(PROP_PAGE_MARGIN, String.valueOf(margin));
-                        String page_margin = mSettings.getProperty(PROP_PAGE_MARGIN);
-                        mSettings.setProperty(PROP_PAGE_MARGIN_LEFT, page_margin);
-                        mSettings.setProperty(PROP_PAGE_MARGIN_RIGHT, page_margin);
-                        mSettings.setProperty(PROP_PAGE_MARGIN_TOP, page_margin);
-                        mSettings.setProperty(PROP_PAGE_MARGIN_BOTTOM, page_margin);
-
-                        ReaderView.this.saveSettings(mSettings);
-                        return Integer.valueOf(page_margin);
-                    }
-                });
-	            dlg.show();
+	        	Intent intent = new Intent(mActivity, ReaderSettingsActivity.class);
+	        	mActivity.startActivity(intent);
+	        }
+	        
+	        @Override
+	        public boolean ttsIsSpeaking()
+	        {
+	            if (ttsControl == null) {
+	                return false;
+	            }
+	            return ttsControl.isSpeaking();
 	        }
 
             @Override
             public void ttsInit() {
                 Log.d(TAG, "DCMD_TTS_PLAY: initializing TTS");
-                if(!mActivity.initTTS(new TTS.OnTTSCreatedListener() {
-                    
-                    @Override
-                    public void onCreated(TTS tts) {
-                        ttsControl = new TtsControl(tts);
-                    }
-                })) {
-                    Log.d(TAG, "Cannot initilize TTS");
+                if (ttsControl == null) {
+                    ttsControl = new TtsController(ReaderView.this);
+                    ttsControl.init();
                 }
-                mReaderMenu.setTtsState(isSpeaking);
             }
-
 
             @Override
             public void ttsPause() {
                 ttsControl.pause();
-                
             }
 
             @Override
             public void ttsStop() {
                 ttsControl.stop();
-                stopTTS();
-                stopTracking();
-                
             }
 
             @Override
             public void ttsSpeak() {
-                ttsControl.toggleStartStop();
-                
+                ttsControl.speak();
+            }
+
+            @Override
+            public boolean canChangeFontFace() {
+            	return true;
             }
 
 	    };
@@ -6721,131 +6772,160 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private void setBookProgress()
 	{
 	    PositionProperties pos = doc.getPositionProps(null);
-	    OnyxMetadata metadata = OnyxCmsCenter.getMetadata(mActivity, mBookInfo.getFileInfo().getPathName());
+	    OnyxMetadata metadata = OnyxCmsCenter.getMetadata(mActivity, mBookInfo.getFileInfo().getBasePath());
 	    if (metadata != null) {
-	        BookProgress progress = new BookProgress(pos.pageNumber + 1, pos.pageCount);
+	        OnyxBookProgress progress = new OnyxBookProgress(pos.pageNumber + 1, pos.pageCount);
 	        metadata.setProgress(progress);
 	        OnyxCmsCenter.updateMetadata(mActivity, metadata);
 	    }
 	    else {
-	        metadata = OnyxMetadata.createFromFile(mBookInfo.getFileInfo().getPathName());
-	        BookProgress progress = new BookProgress(pos.pageNumber + 1, pos.pageCount);
-	        metadata.setProgress(progress);
-	        OnyxCmsCenter.insertMetadata(mActivity, metadata);
+	        metadata = OnyxMetadata.createFromFile(mBookInfo.getFileInfo().getBasePath());
+	        if (metadata != null) {
+	        	OnyxBookProgress progress = new OnyxBookProgress(pos.pageNumber + 1, pos.pageCount);
+	        	metadata.setProgress(progress);
+	        	OnyxCmsCenter.insertMetadata(mActivity, metadata);
+	        }
 	    }
 	}
-
-    //add by dxwts
-	private boolean isSpeaking; 
-    private class TtsControl implements TTS.OnUtteranceCompletedListener
-    {
-        
-        private TTS mTTS = null;
-        public TtsControl(TTS tts) {
-            mTTS = tts;
-            mTTS.setOnUtteranceCompletedListener(this);
-            setReaderMode();
-        }
-        
-        private boolean closed; 
-        public void stopAndClose() {
-            if (closed)
-                return;
-            isSpeaking = false;
-            closed = true;
-            BackgroundThread.instance().executeGUI(new Runnable() {
+	
+	private static class TtsController 
+	{
+	    private ReaderView mReaderView = null;
+        private boolean changedPageMode;
+        private Selection currentSelection;
+	    private OnyxTtsSpeaker mTtsSpeaker = null;
+	    
+	    public TtsController(ReaderView readerView)
+	    {
+	        mReaderView = readerView;
+	    }
+	    
+	    public boolean isSpeaking()
+	    {
+	        if (mTtsSpeaker == null) {
+	            return false;
+	        }
+	        
+	        return mTtsSpeaker.isActive() && !mTtsSpeaker.isPaused();
+	    }
+	    
+	    public void init()
+	    {
+	        if (mTtsSpeaker == null) {
+	            mTtsSpeaker = new OnyxTtsSpeaker(mReaderView.getContext());
+	            mTtsSpeaker.setOnSpeakerCompletionListener(new OnyxTtsSpeaker.OnSpeakerCompletionListener()
+	            {
+	                
+	                @Override
+	                public void onSpeakerCompletion()
+	                {
+	                    if (mTtsSpeaker.isActive()) {
+	                        TtsController.this.moveSelection(ReaderCommand.DCMD_SELECT_NEXT_SENTENCE);
+	                    }
+	                }
+	            });
+	            
+	            String oldViewSetting = mReaderView.getSetting( ReaderView.PROP_PAGE_VIEW_MODE );
+	            if ( "1".equals(oldViewSetting) ) {
+	                changedPageMode = true;
+	                mReaderView.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "0");
+	            }
+	            
+	            this.moveSelection( ReaderCommand.DCMD_SELECT_FIRST_SENTENCE );
+	        }
+	    }
+	    
+	    public void speak()
+	    {
+	        if (mTtsSpeaker.isPaused()) {
+	            mTtsSpeaker.resume();
+	        } 
+	        else {
+	            mTtsSpeaker.stop();
+	            
+	            String oldViewSetting = mReaderView.getSetting( ReaderView.PROP_PAGE_VIEW_MODE );
+                if ( "1".equals(oldViewSetting) ) {
+                    changedPageMode = true;
+                    mReaderView.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "0");
+                }
+                
+                if (currentSelection == null) {
+                    this.moveSelection( ReaderCommand.DCMD_SELECT_FIRST_SENTENCE );
+                }
+                else {
+                    mTtsSpeaker.startTts(currentSelection.text);
+                }
+	        }
+	    }
+	    
+	    public void pause()
+	    {
+	        mTtsSpeaker.pause();
+	    }
+	    
+	    public void stop()
+	    {
+	        if (mTtsSpeaker == null) {
+	            return;
+	        }
+	        
+	        mTtsSpeaker.stop();
+	        currentSelection = null;
+	        
+	        BackgroundThread.instance().executeGUI(new Runnable() {
                 @Override
                 public void run() {
-                    stop();
-                    restoreReaderMode();
-                    ReaderView.this.clearSelection();
-                    ReaderView.this.save();
+                    if (changedPageMode) {
+                        mReaderView.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "1");
+                    }
+                    mReaderView.clearSelection();
+                    mReaderView.save();
                 }
             });
-        }
+	    }
+	    
+	    public void shutdown()
+	    {
+	        if (mTtsSpeaker == null) {
+	            return;
+	        }
+	        
+	        this.stop();
+	        mTtsSpeaker.shutdown();
+	    }
         
-        private boolean changedPageMode;
-        private void setReaderMode()
+        private void moveSelection( ReaderCommand cmd )
         {
-            String oldViewSetting = ReaderView.this.getSetting( ReaderView.PROP_PAGE_VIEW_MODE );
-            if ( "1".equals(oldViewSetting) ) {
-                changedPageMode = true;
-                ReaderView.this.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "0");
-            }
-            moveSelection( ReaderCommand.DCMD_SELECT_FIRST_SENTENCE );
-        }
-        
-        private void restoreReaderMode()
-        {
-            if ( changedPageMode ) {
-                ReaderView.this.setSetting(ReaderView.PROP_PAGE_VIEW_MODE, "1");
-            }
-        }
-        
-        private Selection currentSelection;
-        
-        public void moveSelection( ReaderCommand cmd )
-        {
-            ReaderView.this.moveSelection(cmd, 0, new ReaderView.MoveSelectionCallback() {
+            mReaderView.moveSelection(cmd, 0, new ReaderView.MoveSelectionCallback() {
                 
                 @Override
                 public void onNewSelection(Selection selection) {
                     Log.d("cr3", "onNewSelection: " + selection.text);
                     currentSelection = selection;
-                    if ( isSpeaking )
-                        say( currentSelection );
+                    if ( mTtsSpeaker.isActive() && !mTtsSpeaker.isPaused() ) {
+                        mTtsSpeaker.startTts(currentSelection.text);
+                    }
                 }
                 
                 @Override
                 public void onFail() {
                     Log.d("cr3", "fail()");
-                    stop();
-                    //currentSelection = null;
+                    TtsController.this.stop();
                 }
             });
         }
-        
-        private void say( Selection selection ) {
-            HashMap<String, String> params = new HashMap<String, String>();
-            params.put(TTS.KEY_PARAM_UTTERANCE_ID, "cr3UtteranceId");
-            mTTS.speak(selection.text, TTS.QUEUE_ADD, params);
-        }
-        
-        public void start() {
-            if ( currentSelection==null )
-                return;
-            
-            isSpeaking = true;
-            say( currentSelection );
-        }
-        
-        public void stop() {
-            isSpeaking = false;
-            if ( mTTS.isSpeaking() ) {
-                mTTS.stop();
-            }
-        }
-        
-        public void pause() {
-            if (isSpeaking)
-                toggleStartStop();
-        }
-        
-        public void toggleStartStop() {
-            if ( isSpeaking ) {
-                stop();
-            } else {
-                start();
-            }
-            mReaderMenu.setTtsState(isSpeaking);
-        }
-        
-        @Override
-        public void onUtteranceCompleted(String utteranceId) {
-            Log.d("cr3", "onUtteranceCompleted " + utteranceId);
-            if (isSpeaking )
-                moveSelection( ReaderCommand.DCMD_SELECT_NEXT_SENTENCE );
-            
-        }
+	}
+    
+    private void epdInvalidateHelper()
+    {
+    	mPageRenderCount++;
+    	if (mPageRenderCount >= DialogScreenRefresh.RENDER_RESET_MAX_TIME) {
+    		EpdController.invalidate(this, UpdateMode.GC);
+    		mPageRenderCount = 0;
+    	}
+    	else {
+    		EpdController.invalidate(this, UpdateMode.GU);
+    	}
     }
+    
 }
