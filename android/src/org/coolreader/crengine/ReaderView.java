@@ -6136,7 +6136,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private void showDialogReaderMenu()
 	{
-	    DialogReaderMenu.IMenuHandler handler = new DialogReaderMenu.IMenuHandler()
+	    DialogReaderMenu.IReaderMenuHandler handler = new DialogReaderMenu.IReaderMenuHandler()
 	    {
 
 	        @Override
