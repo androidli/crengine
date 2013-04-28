@@ -530,4 +530,5 @@
     <string name="table_contents_found">No Table of Contents found</string>
     <string name="cannot_open_link">Cannot open link </string>
     <string name="pattern_no_specifie">No pattern specified</string>
+    <string name="search_hint">Searching</string>
 </resources>

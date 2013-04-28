@@ -30,6 +30,7 @@ import org.coolreader.crengine.Properties;
 import org.coolreader.crengine.ReaderAction;
 import org.coolreader.crengine.ReaderView;
 import org.coolreader.crengine.ReaderViewLayout;
+import org.coolreader.crengine.SearchMenuHandler;
 import org.coolreader.crengine.Services;
 import org.coolreader.crengine.TTS;
 import org.coolreader.crengine.TTS.OnTTSCreatedListener;
@@ -43,6 +44,7 @@ import org.coolreader.donations.PurchaseObserver;
 import org.coolreader.donations.ResponseHandler;
 import org.koekak.android.ebookdownloader.SonyBookSelector;
 
+import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -62,6 +64,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.onyx.android.sdk.data.sys.OnyxSysCenter;
+import com.onyx.android.sdk.ui.dialog.DialogSearchView;
 
 public class CoolReader extends BaseActivity
 {
@@ -80,6 +83,7 @@ public class CoolReader extends BaseActivity
 	//CRDB mDB;
 	private ViewGroup mCurrentFrame;
 	
+	public DialogSearchView mDialogSearchView = null;
 	
 	String fileToLoadOnStart = null;
 	
@@ -191,8 +195,10 @@ public class CoolReader extends BaseActivity
 //        log.i("initializing reader");
 
         mReaderView = new ReaderView(this, mEngine, loadSettings(0));
+        
+        final Intent intent = getIntent();
+		
         fileToLoadOnStart = null;
-        Intent intent = getIntent();
         if ( intent!=null && Intent.ACTION_VIEW.equals(intent.getAction()) ) {
             Uri uri = intent.getData();
             if ( uri!=null ) {
@@ -202,6 +208,8 @@ public class CoolReader extends BaseActivity
         }
         
 		showRootWindow();
+		
+		this.handleNewIntent();
 		
 		OnyxSysCenter.init(this);
 		
@@ -358,6 +366,20 @@ public class CoolReader extends BaseActivity
 	@Override
 	protected void onNewIntent(Intent intent) {
 		log.i("onNewIntent : " + intent);
+		
+		this.setIntent(intent);
+		
+		if (Intent.ACTION_SEARCH.equals(this.getIntent().getAction())) {
+			String query = this.getIntent().getStringExtra(SearchManager.QUERY);
+			if (mReaderView != null) {
+				mReaderView.findText( query,false,true);
+			}
+			SearchMenuHandler handler = new SearchMenuHandler(CoolReader.this , query);
+            mDialogSearchView = new DialogSearchView(CoolReader.this, handler);
+            mDialogSearchView.show();
+            return;
+		}
+		
 		if ( mDestroyed ) {
 			log.e("engine is already destroyed");
 			return;
@@ -622,6 +644,21 @@ public class CoolReader extends BaseActivity
 		
 		log.i("CoolReader.onStop() exiting");
 	}
+	
+	private boolean handleNewIntent()
+    {
+		if (Intent.ACTION_SEARCH.equals(this.getIntent().getAction())) {
+			String query = this.getIntent().getStringExtra(SearchManager.QUERY);
+			if (mReaderView != null) {
+				mReaderView.findText( query,false,true);
+			}
+			SearchMenuHandler handler = new SearchMenuHandler(CoolReader.this , query);
+            mDialogSearchView = new DialogSearchView(CoolReader.this, handler);
+            mDialogSearchView.show();
+            return true;
+		}
+		return false;
+    }
 
 //	public void showView( View view, boolean hideProgress )
 //	{
@@ -1714,10 +1751,6 @@ public class CoolReader extends BaseActivity
 		if (mHomeFrame != null)
 			mHomeFrame.refreshOnlineCatalogs();
 	}
-	
-
-	
-
 	
 }
 

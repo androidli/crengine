@@ -1559,7 +1559,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			public void done() {
 				BackgroundThread.ensureGUI();
 				drawPage();
-				FindNextDlg.showDialog( mActivity, view, pattern, caseInsensitive );
 			}
 			public void fail(Exception e) {
 				BackgroundThread.ensureGUI();
@@ -5578,7 +5577,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
         return bmk;
     }
 
-    public void save()
+	public void save()
     {
 		BackgroundThread.ensureGUI();
 		if (isBookLoaded() && mBookInfo != null) {
@@ -6346,7 +6345,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public void searchContent()
 	        {
-	            ReaderView.this.showSearchDialog(null);
+	            mActivity.onSearchRequested();
 	        }
 
 	        @Override
