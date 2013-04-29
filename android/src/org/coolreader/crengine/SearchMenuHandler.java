@@ -27,7 +27,7 @@ public class SearchMenuHandler implements IHandler {
 	@Override
 	public void dismissdialog() {
 		mCoolReader.getReaderView().clearSelection();
-		mCoolReader.mDialogSearchView.dismiss();
+		mCoolReader.getDialogSearchView().dismiss();
 	}
 
 	@Override

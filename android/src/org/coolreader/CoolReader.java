@@ -83,7 +83,7 @@ public class CoolReader extends BaseActivity
 	//CRDB mDB;
 	private ViewGroup mCurrentFrame;
 	
-	public DialogSearchView mDialogSearchView = null;
+	private DialogSearchView mDialogSearchView = null;
 	
 	String fileToLoadOnStart = null;
 	
@@ -288,7 +288,10 @@ public class CoolReader extends BaseActivity
 		return mReaderView;
 	}
 	
-
+	public DialogSearchView getDialogSearchView()
+	{
+	    return mDialogSearchView;
+	}
 
 	@Override
 	public void applyAppSetting( String key, String value )
