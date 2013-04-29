@@ -426,15 +426,33 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		switch (keyCode) {
 		case KeyEvent.KEYCODE_DPAD_CENTER:
 		case KeyEvent.KEYCODE_ENTER:
-			Bookmark bm = doc.getCurrentPageBookmark();
-			for (int i = 0; i < mBookInfo.getBookmarkCount(); i++) {
-				if (mBookInfo.getBookmark(i).getPosText()
-						.equals(bm.getPosText())) {
-					removeBookmark(mBookInfo.getBookmark(i));
-					return true;
-				}
-			}
-			addBookmark(bm);
+		    PositionProperties curr_pos = doc.getPositionProps(null);
+	        boolean is_page_view = curr_pos.pageMode != 0;
+	        if (is_page_view) {
+	            boolean found_bookmark = false;
+	            Bookmark page_bookmark = doc.getCurrentPageBookmark();
+
+	            ArrayList<Bookmark> found_results = null;
+	            for (int i = 0; i < mBookInfo.getBookmarkCount(); i++) {
+	                Bookmark bm = mBookInfo.getBookmark(i);
+	                if (this.isBookmarkInCurrentPage(bm)) {
+	                    found_bookmark = true;
+	                    if (found_results == null) {
+	                        found_results = new ArrayList<Bookmark>();
+	                    }
+	                    found_results.add(bm);
+	                }
+	            }
+	            if (found_results != null) {
+	                for (Bookmark bm : found_results) {
+	                    removeBookmark(bm);
+	                }
+	            }
+
+	            if (!found_bookmark) {
+	                addBookmark(page_bookmark);
+	            }
+	        }
 			return true;
 		}
 		if (keyCode == 0)
@@ -6732,9 +6750,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	private void drawBookmarkIcon(Canvas canvas) {
 	    mBookmarkBitmap = BookmarkIcon.drawTriangle(false);
 	    if (doc != null && mBookInfo != null) {
-	        Bookmark bm = doc.getCurrentPageBookmark();
 	        for (int i = 0; i < mBookInfo.getBookmarkCount(); i++) {
-	            if (bm.getPosText().equals(mBookInfo.getBookmark(i).getPosText())) {
+	            if (this.isBookmarkInCurrentPage(mBookInfo.getBookmark(i))) {
 	                mBookmarkBitmap = BookmarkIcon.drawTriangle(true);
 	                break;
 	            }
@@ -6925,6 +6942,34 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     	else {
     		EpdController.invalidate(this, UpdateMode.GU);
     	}
+    }
+    
+    private boolean isBookmarkInCurrentPage(Bookmark bm)
+    {
+        PositionProperties curr_pos = doc.getPositionProps(null);
+        boolean is_page_view = curr_pos.pageMode != 0;
+        if (is_page_view) {
+            Bookmark page_bookmark = doc.getCurrentPageBookmark();
+            if (bm.equalUniqueKey(page_bookmark)) {
+                return true;
+            }
+
+            PositionProperties page_pos = doc.getPositionProps(page_bookmark.getStartPos());
+            PositionProperties bm_pos = doc.getPositionProps(bm.getStartPos());
+
+            final String str_margin_top = mSettings.getProperty(ReaderView.PROP_PAGE_MARGIN_TOP);
+            final String str_margin_bottom = mSettings.getProperty(ReaderView.PROP_PAGE_MARGIN_BOTTOM);
+            assert(str_margin_top != null & str_margin_bottom != null);
+            final int margin_top = Integer.parseInt(str_margin_top);
+            final int margin_bottom = Integer.parseInt(str_margin_bottom);
+
+            // header height is 30, which is hard coded here
+            final int NON_TEXT_HEIGHT = margin_top + margin_bottom + 30;
+            final int TEXT_HEIGTH = this.getHeight() - NON_TEXT_HEIGHT;
+            return bm_pos.y >= page_pos.y && bm_pos.y < (page_pos.y + TEXT_HEIGTH);
+        }
+        
+        return false;
     }
     
 }
