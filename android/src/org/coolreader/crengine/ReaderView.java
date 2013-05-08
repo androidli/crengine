@@ -6244,8 +6244,13 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public boolean showZoomSettings()
 	        {
-	            // TODO Auto-generated method stub
 	            return false;
+	        }
+	        
+	        @Override
+	        public boolean showSpacingSettings()
+	        {
+	            return true;
 	        }
 
 	        @Override
