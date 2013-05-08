@@ -61,6 +61,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.onyx.android.sdk.data.sys.OnyxSysCenter;
@@ -114,6 +116,10 @@ public class CoolReader extends BaseActivity
     
 		log.i("CoolReader.onCreate() entered");
 		super.onCreate(savedInstanceState);
+		
+		Window window = this.getWindow();
+		window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
+
 		
     	isFirstStart = true;
 		justCreated = true;
