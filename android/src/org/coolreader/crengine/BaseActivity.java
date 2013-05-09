@@ -1451,6 +1451,7 @@ public class BaseActivity extends Activity implements Settings {
 	        	fontSize = DeviceInfo.DEF_FONT_SIZE;
 
 	        fixFontSettings(props);
+	        props.applyDefault("styles.footnote.font-size", "font-size: 70%");
 	        props.applyDefault(ReaderView.PROP_FONT_SIZE, String.valueOf(fontSize));
 	        props.applyDefault(ReaderView.PROP_FONT_HINTING, "2");
 	        props.applyDefault(ReaderView.PROP_STATUS_FONT_SIZE, DeviceInfo.EINK_NOOK ? "15" : "16");
