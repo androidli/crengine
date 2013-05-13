@@ -37,12 +37,14 @@ import android.text.ClipboardManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.SparseArray;
+import android.view.Display;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.WindowManager;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -59,6 +61,7 @@ import com.onyx.android.sdk.ui.data.DirectoryItem;
 import com.onyx.android.sdk.ui.dialog.AnnotationItem;
 import com.onyx.android.sdk.ui.dialog.DialogDirectory;
 import com.onyx.android.sdk.ui.dialog.DialogDirectory.DirectoryTab;
+import com.onyx.android.sdk.ui.dialog.DialogDirectoryPhone;
 import com.onyx.android.sdk.ui.dialog.DialogFontFaceSettings;
 import com.onyx.android.sdk.ui.dialog.DialogFontFaceSettings.onSettingsFontFaceListener;
 import com.onyx.android.sdk.ui.dialog.DialogGotoPage;
@@ -67,6 +70,7 @@ import com.onyx.android.sdk.ui.dialog.DialogLoading;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.FontSizeProperty;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.LineSpacingProperty;
+import com.onyx.android.sdk.ui.dialog.DialogReaderMenuPhone;
 import com.onyx.android.sdk.ui.dialog.DialogScreenRefresh;
 import com.onyx.android.sdk.ui.util.BookmarkIcon;
 
@@ -6122,10 +6126,19 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     }
 
     private DialogReaderMenu mReaderMenu = null;
+    private DialogReaderMenuPhone mReaderMenuPhone = null;
     private DialogLoading mDialogLoading = null;
+    private int mScreenWidth = 0;
+    private int mScreenHeight = 0;
 	public ReaderView(CoolReader activity, Engine engine, Properties props) 
     {
         super(activity);
+        
+        WindowManager window = (WindowManager) activity.getSystemService(Context.WINDOW_SERVICE); 
+		Display display = window.getDefaultDisplay();
+		mScreenWidth = display.getWidth();
+		mScreenHeight = display.getHeight();
+		
         doc = new DocView(engine);
         doc.setReaderCallback(readerCallback);
         SurfaceHolder holder = getHolder();
@@ -6223,7 +6236,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        public void toggleFullscreen()
 	        {
 	            ReaderView.this.toggleFullscreen();
-	            mReaderMenu.dismiss();
+	            if (mReaderMenu != null) {
+                	mReaderMenu.dismiss();
+                }
+                if (mReaderMenuPhone != null) {
+                	mReaderMenuPhone.dismiss();
+                }
 	        }
 
 	        @Override
@@ -6256,7 +6274,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public void showTTsView()
 	        {
-	            mReaderMenu.dismiss();
+	        	if (mReaderMenu != null) {
+                	mReaderMenu.dismiss();
+                }
+                if (mReaderMenuPhone != null) {
+                	mReaderMenuPhone.dismiss();
+                }
 
 	            mActivity.initTTS(new TTS.OnTTSCreatedListener()
 	            {
@@ -6300,7 +6323,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	                public void onAcceptNumber(int num)
 	                {
 	                    ReaderView.this.goToPage(num);
-	                    mReaderMenu.dismiss();
+	                    if (mReaderMenu != null) {
+	                    	mReaderMenu.dismiss();
+	                    }
+	                    if (mReaderMenuPhone != null) {
+	                    	mReaderMenuPhone.dismiss();
+	                    }
 	                }
 	            });
 	            dialogGotoPage.show();
@@ -6347,7 +6375,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	                    mSettings.setProperty(PROP_FONT_FACE, mEngine.getFontFaceList()[location]);
 	                    ReaderView.this.saveSettings(mSettings);
                         syncViewSettings(getSettings(), true, true);
-	                    mReaderMenu.setButtonFontFaceText(mEngine.getFontFaceList()[location]);
+                        if (mReaderMenu != null) {
+                        	mReaderMenu.setButtonFontFaceText(mEngine.getFontFaceList()[location]);
+                        }
+                        if (mReaderMenuPhone != null) {
+                        	mReaderMenuPhone.setButtonFontFaceText(mEngine.getFontFaceList()[location]);
+                        }
 	                }
 	            });
 	        }
@@ -6384,8 +6417,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	            currentTapHandler.performAction(ReaderAction.PAGE_UP, false);
 
 	            PositionProperties pos = doc.getPositionProps(null);
-	            mReaderMenu.setPageIndex(pos.pageNumber + 1);
-	            mReaderMenu.setPageCount(pos.pageCount);
+	            if (mReaderMenu != null) {
+	            	mReaderMenu.setPageIndex(pos.pageNumber + 1);
+	            	mReaderMenu.setPageCount(pos.pageCount);
+	            }
+	            if (mReaderMenuPhone != null) {
+	            	mReaderMenuPhone.setPageIndex(pos.pageNumber + 1);
+	            	mReaderMenuPhone.setPageCount(pos.pageCount);
+	            }
 	        }
 
 	        @Override
@@ -6394,8 +6433,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	            currentTapHandler.performAction(ReaderAction.PAGE_DOWN, false);
 
 	            PositionProperties pos = doc.getPositionProps(null);
-	            mReaderMenu.setPageIndex(pos.pageNumber + 1);
-	            mReaderMenu.setPageCount(pos.pageCount);
+	            if (mReaderMenu != null) {
+	            	mReaderMenu.setPageIndex(pos.pageNumber + 1);
+	            	mReaderMenu.setPageCount(pos.pageCount);
+	            }
+	            if (mReaderMenuPhone != null) {
+	            	mReaderMenuPhone.setPageIndex(pos.pageNumber + 1);
+	            	mReaderMenuPhone.setPageCount(pos.pageCount);
+	            }
 	        }
 	        
 	        @Override
@@ -6432,7 +6477,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        public void gotoPage(int i)
 	        {
 	            ReaderView.this.goToPage(i);
-	            mReaderMenu.dismiss();
+	            if (mReaderMenu != null) {
+	            	mReaderMenu.dismiss();
+	            }
+	            if (mReaderMenuPhone != null) {
+	            	mReaderMenuPhone.dismiss();
+	            }
 	        }
 
 	        @Override
@@ -6538,14 +6588,26 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	    };
 
-        mReaderMenu = new DialogReaderMenu(mActivity, handler);
-	    mReaderMenu.show();
+        
+		if (mScreenWidth == 480 && mScreenHeight == 800) {
+			mReaderMenuPhone = new DialogReaderMenuPhone(mActivity, handler);
+			mReaderMenuPhone.show();
+		} else {
+			mReaderMenu = new DialogReaderMenu(mActivity, handler);
+			mReaderMenu.show();
+		}
 	}
 
 	private void updateReaderMenuPage()
 	{
 	    if (mReaderMenu != null) {
 	        PositionProperties pos = doc.getPositionProps(null);
+	        mReaderMenu.setPageIndex(pos.pageNumber + 1);
+	        mReaderMenu.setPageCount(pos.pageCount);
+	    }
+	    
+	    if (mReaderMenu != null) {
+	    	PositionProperties pos = doc.getPositionProps(null);
 	        mReaderMenu.setPageIndex(pos.pageNumber + 1);
 	        mReaderMenu.setPageCount(pos.pageCount);
 	    }
@@ -6738,8 +6800,14 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
             }
         };
-        DialogDirectory dialog = new DialogDirectory(mActivity, tocItems, bookmarkItems, annotationItems, gotoPageHandler, tab);
-        dialog.show();
+        
+        if (mScreenWidth == 480 && mScreenHeight == 800) {
+        	DialogDirectoryPhone dialog_directory_phone = new DialogDirectoryPhone(mActivity, tocItems, bookmarkItems, annotationItems, gotoPageHandler, tab);
+            dialog_directory_phone.show();
+        } else {
+        	DialogDirectory dialog = new DialogDirectory(mActivity, tocItems, bookmarkItems, annotationItems, gotoPageHandler, tab);
+            dialog.show();
+        }
     }
 
 	private Bitmap mBookmarkBitmap = null;
