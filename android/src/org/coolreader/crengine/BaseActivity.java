@@ -467,14 +467,17 @@ public class BaseActivity extends Activity implements Settings {
 
 	public void applyFullscreen( Window wnd )
 	{
-	    WindowManager.LayoutParams params = getWindow().getAttributes();
-	    if (mFullscreen) {
-	        params.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;
-	    } else {
-	        params.flags &= (~WindowManager.LayoutParams.FLAG_FULLSCREEN);
-	    }
-	    getWindow().setAttributes(params);
-	    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+	    if ( mFullscreen ) {
+            wnd.setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, 
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN );
+            
+            wnd.addFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN |
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        } else {
+            wnd.setFlags(0, WindowManager.LayoutParams.FLAG_FULLSCREEN );
+            wnd.clearFlags(WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN |
+                  WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS);
+        }
 
 		setSystemUiVisibility();
 	}
