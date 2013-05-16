@@ -33,6 +33,7 @@ import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.os.PowerManager;
 import android.text.ClipboardManager;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -5140,35 +5141,50 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			BackgroundThread.ensureBackground();
 			coverPageBytes = null;
 			log.i("Loading document " + filename);
-			doc.doCommand(ReaderCommand.DCMD_SET_INTERNAL_STYLES.nativeId, disableInternalStyles ? 0 : 1);
-			doc.doCommand(ReaderCommand.DCMD_SET_TEXT_FORMAT.nativeId, disableTextAutoformat ? 0 : 1);
-	        boolean success = doc.loadDocument(filename);
-	        if ( success ) {
-				log.v("loadDocumentInternal completed successfully");
-				
-				doc.requestRender();
-				
-	        	findCoverPage();
-				log.v("requesting page image, to render");
-				if (internalDX == 0 || internalDY == 0) {
-					internalDX = getWidth();
-					internalDY = getHeight();
-					log.d("LoadDocument task: no size defined, resizing using widget size");
-					doc.resize(internalDX, internalDY);
-				}
-	        	preparePageImage(0);
-				log.v("updating loaded book info");
-	        	updateLoadedBookInfo();
-				log.i("Document " + filename + " is loaded successfully");
-				if ( pos!=null ) {
-					log.i("Restoring position : " + pos);
-					restorePositionBackground(pos);
-				}
-				CoolReader.dumpHeapAllocation();
-	        } else {
-				log.e("Error occured while trying to load document " + filename);
-				throw new IOException("Cannot read document");
-	        }
+			
+            PowerManager.WakeLock wake_lock = null;
+			try {
+	            PowerManager pm = (PowerManager)ReaderView.this.getContext().getSystemService(Context.POWER_SERVICE);
+	            wake_lock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+	            wake_lock.acquire();
+	            Log.d(TAG, "acquire LoadDocumentTask WakeLock");
+	            
+			    doc.doCommand(ReaderCommand.DCMD_SET_INTERNAL_STYLES.nativeId, disableInternalStyles ? 0 : 1);
+			    doc.doCommand(ReaderCommand.DCMD_SET_TEXT_FORMAT.nativeId, disableTextAutoformat ? 0 : 1);
+			    boolean success = doc.loadDocument(filename);
+			    if ( success ) {
+			        log.v("loadDocumentInternal completed successfully");
+
+			        doc.requestRender();
+
+			        findCoverPage();
+			        log.v("requesting page image, to render");
+			        if (internalDX == 0 || internalDY == 0) {
+			            internalDX = getWidth();
+			            internalDY = getHeight();
+			            log.d("LoadDocument task: no size defined, resizing using widget size");
+			            doc.resize(internalDX, internalDY);
+			        }
+			        preparePageImage(0);
+			        log.v("updating loaded book info");
+			        updateLoadedBookInfo();
+			        log.i("Document " + filename + " is loaded successfully");
+			        if ( pos!=null ) {
+			            log.i("Restoring position : " + pos);
+			            restorePositionBackground(pos);
+			        }
+			        CoolReader.dumpHeapAllocation();
+			    } else {
+			        log.e("Error occured while trying to load document " + filename);
+			        throw new IOException("Cannot read document");
+			    }
+			}
+			finally {
+                if (wake_lock != null) {
+                    wake_lock.release();
+                    Log.d(TAG, "release LoadDocumentTask WakeLock");
+                }
+            }
 		}
 
 		@Override
@@ -5727,8 +5743,8 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 			scheduleSwapTask();
 		}
 		public boolean OnFormatProgress(final int percent) {
+		    log.d("readerCallback.OnFormatProgress " + percent);
 			if ( enable_progress_callback ) {
-		    	log.d("readerCallback.OnFormatProgress " + percent);
 		    	mActivity.postAction(new Runnable()
 		    	{
 
