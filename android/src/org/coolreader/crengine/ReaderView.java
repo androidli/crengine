@@ -6248,11 +6248,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        public void toggleFontEmbolden()
 	        {
 	            String s = mSettings.getProperty(PROP_FONT_WEIGHT_EMBOLDEN);
-	            if (s.equals("0")) {
-                    s = "1";
+	            if (s != null && s.equals("1")) {
+                    s = "0";
                 }
 	            else {
-	                s = "0";
+	                s = "1";
 	            }
 	            mSettings.setProperty(PROP_FONT_WEIGHT_EMBOLDEN, s);
 	            ReaderView.this.saveSettings(mSettings);
