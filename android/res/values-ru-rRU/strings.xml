@@ -246,7 +246,7 @@
     <string name="options_format_image_scaling_mode_arbitrary">Произвольное масштабирование</string>
     <string name="options_format_image_scaling">Масштабирование картинок</string>
     <string name="options_format_image_scaling_inline_mode">Режим для вложенных картинок</string>
-    <string name="options_format_image_scaling_inline_scale">Макс. увеличение для вложенных картинок</string>
+    <string name="options_format_image_scaling_inline_scale">Максимальное увеличение для вложенных картинок</string>
     <string name="options_format_image_scaling_scale_auto">Авто</string>
     <string name="options_format_image_scaling_scale_3">*3</string>
     <string name="options_format_image_scaling_scale_2">*2</string>
@@ -495,8 +495,8 @@
     <string name="dlg_button_recent_delete">Удалить из списка</string>
     <string name="dlg_button_book_delete">Удалить книгу</string>
     <string name="btn_toolbar_more">Ещё</string>
-    <string name="settings_page_margin">Поле страницы</string>
-    <string name="settings_set_page_margin">Установить поле страницы</string>
+    <string name="settings_page_margin">Поля страницы</string>
+    <string name="settings_set_page_margin">Установить поля страницы</string>
     <string name="settings_set_dictionary">Установить словарь</string>
     <string name="settings_set_dictionary_title">Словарь</string>
     <string name="did_not_find_the_dictionary">Словарь не найден</string>
