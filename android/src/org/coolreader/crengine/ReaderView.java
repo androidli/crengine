@@ -6560,8 +6560,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        @Override
 	        public void showReaderSettings()
 	        {
-	        	Intent intent = new Intent(mActivity, ReaderSettingsActivity.class);
-	        	mActivity.startActivity(intent);
+	            mActivity.showOptionsDialog(OptionsDialog.Mode.READER);
 	        }
 	        
 	        @Override
