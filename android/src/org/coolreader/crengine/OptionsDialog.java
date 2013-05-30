@@ -1320,16 +1320,16 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			mAdapter = new ListAdapter() {
 				@Override
                 public boolean areAllItemsEnabled() {
-					return true;
+					return false;
 				}
 
 				@Override
                 public boolean isEnabled(int position) {
-//					boolean isPageMode = mProperties.getBool(PROP_PAGE_VIEW_MODE, true);
-//					OptionBase option = mOptions.get(position);
-//					String prop = option.property;
-//					if ( prop.equals(PROP_STATUS_LINE) || prop.equals(PROP_FOOTNOTES) )
-//						return isPageMode;
+					boolean isPageMode = mProperties.getBool(PROP_PAGE_VIEW_MODE, true);
+					OptionBase option = mOptions.get(position);
+					String prop = option.property;
+					if ( prop.equals(PROP_STATUS_LINE) || prop.equals(PROP_FOOTNOTES) )
+						return isPageMode;
 					return true;
 				}
 
