@@ -2,6 +2,7 @@ package org.coolreader.crengine;
 
 import java.io.File;
 import java.io.InputStream;
+import java.io.ObjectInputStream.GetField;
 import java.util.ArrayList;
 
 import org.coolreader.CoolReader;
@@ -14,9 +15,11 @@ import android.content.DialogInterface;
 import android.database.DataSetObserver;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -67,7 +70,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100
 	};
 	public static final String[] mBacklightLevelsTitles = new String[] {
-			"Default", "1%", "2%", "3%", "4%", "5%", "6%", "7%", "8%", "9%", 
+			"Default", "1%", "2%", "3%", "4%", "5%", "6%", "7%", "8%", "9%",
 			"10%", "12%", "15%", "20%", "25%", "30%", "35%", "40%", "45%", "50%", "55%", "60%", "65%", "70%", "75%", "80%", "85%", "90%", "95%", "100%",
 	};
 	public static int[] sInterlineSpaces = new int[] {
@@ -1034,6 +1037,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			if ( selItem<0 )
 				selItem = 0;
 			listView.setAdapter(listAdapter);
+
 			listView.setSelection(selItem);
 			dlg.setView(listView);
 			//final AlertDialog d = dlg.create();
@@ -1047,6 +1051,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 					closed();
 				}
 			});
+			dlg.setOnShowListener(new OnShowListener()
+            {
+
+                @Override
+                public void onShow(DialogInterface dialog)
+                {
+                    listView.requestFocus();
+                }
+            });
 			dlg.show();
 		}
 		
@@ -1129,7 +1142,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			File f = new File(path);
 			if ( !f.isFile() || !f.exists() )
 				return null;
-			try { 
+			try {
 				BitmapDrawable drawable = (BitmapDrawable)BitmapDrawable.createFromPath(path);
 				if ( drawable==null )
 					return null;
@@ -1150,7 +1163,7 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			}
 		}
 		private Drawable createDrawable( int resourceId ) {
-			try { 
+			try {
 				//Drawable drawable = mReaderView.getActivity().getResources().getDrawable(resourceId);
 				InputStream is = getContext().getResources().openRawResource(resourceId);
 				if ( is==null )
@@ -1305,11 +1318,13 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			setFocusable(true);
 			setFocusableInTouchMode(true);
 			mAdapter = new ListAdapter() {
-				public boolean areAllItemsEnabled() {
+				@Override
+                public boolean areAllItemsEnabled() {
 					return false;
 				}
 
-				public boolean isEnabled(int position) {
+				@Override
+                public boolean isEnabled(int position) {
 					boolean isPageMode = mProperties.getBool(PROP_PAGE_VIEW_MODE, true);
 					OptionBase option = mOptions.get(position);
 					String prop = option.property;
@@ -1367,12 +1382,22 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 			};
 			setAdapter(mAdapter);
 		}
+
 		@Override
 		public boolean performItemClick(View view, int position, long id) {
 			mOptions.get(position).onSelect();
 			return true;
 		}
-		
+
+		@Override
+		public boolean onKeyDown(int keyCode, KeyEvent event)
+		{
+		    if(keyCode == KeyEvent.KEYCODE_DPAD_LEFT || keyCode == KeyEvent.KEYCODE_DPAD_RIGHT) {
+		        return true;
+		    }
+		    return super.onKeyDown(keyCode, event);
+		}
+
 	}
 	
 	public View createTabContent(String tag) {
@@ -1883,7 +1908,19 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 		mOptionsCSS.refresh();
 		mOptionsPage.refresh();
 		mOptionsApplication.refresh();
-		
+
+		mOptionsApplication.setFocusable(true);
+		mOptionsCSS.setFocusable(true);
+		mOptionsPage.setFocusable(true);
+		mOptionsStyles.setFocusable(true);
+		mOptionsControls.setFocusable(true);
+		mOptionsApplication.setFocusableInTouchMode(true);
+        mOptionsCSS.setFocusableInTouchMode(true);
+        mOptionsPage.setFocusableInTouchMode(true);
+        mOptionsStyles.setFocusableInTouchMode(true);
+        mOptionsControls.setFocusableInTouchMode(true);
+
+
 		addTab("Styles", R.drawable.cr3_tab_style, R.string.tab_options_styles);
 		addTab("CSS", R.drawable.cr3_tab_css, R.string.tab_options_css);
 		addTab("Page", R.drawable.cr3_tab_page, R.string.tab_options_page);
@@ -2011,13 +2048,15 @@ public class OptionsDialog extends BaseDialog implements TabContentFactory, Opti
 
 	@Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (mode == Mode.READER) {
-	        if (((OptionsListView)mTabs.getCurrentView()).onKeyDown(keyCode, event))
-	        	return true;
-		} else {
-	        if (view.onKeyDown(keyCode, event))
-	        	return true;
-		}
+
+//        if (mode == Mode.READER) {
+//            if (((OptionsListView) mTabs.getCurrentView()).onKeyDown(keyCode, event))
+//                return true;
+//        }
+//        else {
+//            if (view.onKeyDown(keyCode, event))
+//                return true;
+//        }
         return super.onKeyDown(keyCode, event);
     }	
 }

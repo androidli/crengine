@@ -26,9 +26,9 @@
 		        android:minHeight="?android:attr/listPreferredItemHeight"
 		        android:minWidth="?android:attr/listPreferredItemHeight"
 	            android:src="@drawable/cr3_button_prev"
-	            android:focusable="false"
-	            android:focusableInTouchMode="false"
-	            android:background="@null"
+	            android:focusable="true"
+	            android:focusableInTouchMode="true"
+	            android:background="@drawable/button_background_onyxpathindicator"
 	            android:contentDescription="@string/dlg_button_back"/>
 	            />
             <TabWidget
