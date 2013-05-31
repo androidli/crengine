@@ -57,6 +57,7 @@ import com.onyx.android.sdk.data.sys.OnyxSysCenter;
 import com.onyx.android.sdk.data.util.RefValue;
 import com.onyx.android.sdk.device.EpdController;
 import com.onyx.android.sdk.device.EpdController.UpdateMode;
+import com.onyx.android.sdk.device.RK2906Factory;
 import com.onyx.android.sdk.tts.OnyxTtsSpeaker;
 import com.onyx.android.sdk.ui.data.DirectoryItem;
 import com.onyx.android.sdk.ui.dialog.AnnotationItem;
@@ -1758,7 +1759,20 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	
 	public void onAction( final ReaderAction action )
 	{
-		onAction(action , null);
+	    Runnable finish_handler = null;
+	    if (action.cmd == ReaderCommand.DCMD_PAGEDOWN || 
+	            action.cmd == ReaderCommand.DCMD_PAGEUP) {
+	        finish_handler = new Runnable() {
+
+	            @Override
+	            public void run()
+	            {
+	                ReaderView.this.epdInvalidateHelper();
+	            }
+	            
+	        };
+	    }
+		onAction(action , finish_handler);
 	}
 	public void onAction( final ReaderAction action, final Runnable onFinishHandler )
 	{
@@ -3763,7 +3777,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 //			}
 //    		if (mOpened)
    			//hideProgress();
-			ReaderView.this.epdInvalidateHelper();
    			if ( doneHandler!=null )
    				doneHandler.run();
    			scheduleGc();
@@ -6149,6 +6162,12 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	public ReaderView(CoolReader activity, Engine engine, Properties props) 
     {
         super(activity);
+        
+        if (com.onyx.android.sdk.device.DeviceInfo.singleton().getDeviceController() instanceof
+                RK2906Factory.RK2906Controller) {
+            // has to set SurfaceView's background color to enable screen GC updating on RK2906
+            this.setBackgroundColor(0xFFFFFF);
+        }
         
         WindowManager window = (WindowManager) activity.getSystemService(Context.WINDOW_SERVICE); 
 		Display display = window.getDefaultDisplay();
