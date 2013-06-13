@@ -6836,11 +6836,35 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             }
         };
         
+        final DialogDirectory.IEditPageHandler editPageHandler = new DialogDirectory.IEditPageHandler()
+        {
+
+            @Override
+            public void editAnnotation(DirectoryItem item)
+            {
+                // TODO Auto-generated method stub
+
+            }
+
+            @Override
+            public void deleteBookmark(DirectoryItem item)
+            {
+                ReaderView.this.removeBookmark((Bookmark)(item.getTag()));
+            }
+
+            @Override
+            public void deleteAnnotation(DirectoryItem item)
+            {
+                // TODO Auto-generated method stub
+
+            }
+        };
+
         if (mScreenWidth == 480 && mScreenHeight == 800) {
         	DialogDirectoryPhone dialog_directory_phone = new DialogDirectoryPhone(mActivity, tocItems, bookmarkItems, annotationItems, gotoPageHandler, tab);
             dialog_directory_phone.show();
         } else {
-        	DialogDirectory dialog = new DialogDirectory(mActivity, tocItems, bookmarkItems, annotationItems, gotoPageHandler, tab);
+            DialogDirectory dialog = new DialogDirectory(mActivity, tocItems, bookmarkItems, annotationItems, gotoPageHandler, editPageHandler, tab);
             dialog.show();
         }
     }
