@@ -2919,11 +2919,17 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		mActivity.setSettings(settings, 0);
 	}
 	
+	
+	PowerManager.WakeLock mWakeLock = null;
+	
 	/**
 	 * Read JNI view settings, update and save if changed 
 	 */
 	private void syncViewSettings( final Properties currSettings, final boolean save, final boolean saveDelayed )
 	{
+	    PowerManager pm = (PowerManager)ReaderView.this.getContext().getSystemService(Context.POWER_SERVICE);
+	    mWakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+	    mWakeLock.acquire();
 		post( new Task() {
 			Properties props;
 			public void work() {
@@ -6914,6 +6920,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	{
 	    if (mDialogLoading != null && mDialogLoading.isShowing()) {
 	        mDialogLoading.dismiss();
+	    }
+	    if(mWakeLock != null) {
+	        mWakeLock.release();
 	    }
 	}
 
