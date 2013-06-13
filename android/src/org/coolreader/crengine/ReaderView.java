@@ -60,7 +60,6 @@ import com.onyx.android.sdk.device.EpdController.UpdateMode;
 import com.onyx.android.sdk.device.RK2906Factory;
 import com.onyx.android.sdk.tts.OnyxTtsSpeaker;
 import com.onyx.android.sdk.ui.data.DirectoryItem;
-import com.onyx.android.sdk.ui.dialog.AnnotationItem;
 import com.onyx.android.sdk.ui.dialog.DialogDirectory;
 import com.onyx.android.sdk.ui.dialog.DialogDirectory.DirectoryTab;
 import com.onyx.android.sdk.ui.dialog.DialogDirectoryPhone;
@@ -70,10 +69,12 @@ import com.onyx.android.sdk.ui.dialog.DialogGotoPage;
 import com.onyx.android.sdk.ui.dialog.DialogGotoPage.AcceptNumberListener;
 import com.onyx.android.sdk.ui.dialog.DialogLoading;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenu;
-import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.FontSizeProperty;
-import com.onyx.android.sdk.ui.dialog.DialogReaderMenu.LineSpacingProperty;
 import com.onyx.android.sdk.ui.dialog.DialogReaderMenuPhone;
 import com.onyx.android.sdk.ui.dialog.DialogScreenRefresh;
+import com.onyx.android.sdk.ui.dialog.data.AnnotationItem;
+import com.onyx.android.sdk.ui.dialog.data.IReaderMenuHandler;
+import com.onyx.android.sdk.ui.dialog.data.IReaderMenuHandler.FontSizeProperty;
+import com.onyx.android.sdk.ui.dialog.data.IReaderMenuHandler.LineSpacingProperty;
 import com.onyx.android.sdk.ui.util.BookmarkIcon;
 
 public class ReaderView extends SurfaceView implements android.view.SurfaceHolder.Callback, Settings {
@@ -6201,7 +6202,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 
 	private void showDialogReaderMenu()
 	{
-	    DialogReaderMenu.IReaderMenuHandler handler = new DialogReaderMenu.IReaderMenuHandler()
+	    IReaderMenuHandler handler = new IReaderMenuHandler()
 	    {
 
 	        @Override
