@@ -380,12 +380,7 @@ public class CoolReader extends BaseActivity
 		
 		if (Intent.ACTION_SEARCH.equals(this.getIntent().getAction())) {
 			String query = this.getIntent().getStringExtra(SearchManager.QUERY);
-			if (mReaderView != null) {
-				mReaderView.findText( query,false,true);
-			}
-			SearchMenuHandler handler = new SearchMenuHandler(CoolReader.this , query);
-            mDialogSearchView = new DialogSearchView(CoolReader.this, handler);
-            mDialogSearchView.show();
+			doSearch(query);
             return;
 		}
 		
@@ -419,6 +414,15 @@ public class CoolReader extends BaseActivity
 			}, 100);
 		}
 		processIntent(intent);
+	}
+
+	public void doSearch(String query) {
+		if (mReaderView != null) {
+			mReaderView.findText( query,false,true);
+		}
+		SearchMenuHandler handler = new SearchMenuHandler(CoolReader.this , query);
+		mDialogSearchView = new DialogSearchView(CoolReader.this, handler);
+		mDialogSearchView.show();
 	}
 
 	private void processIntent(Intent intent) {
@@ -658,12 +662,7 @@ public class CoolReader extends BaseActivity
     {
 		if (Intent.ACTION_SEARCH.equals(this.getIntent().getAction())) {
 			String query = this.getIntent().getStringExtra(SearchManager.QUERY);
-			if (mReaderView != null) {
-				mReaderView.findText( query,false,true);
-			}
-			SearchMenuHandler handler = new SearchMenuHandler(CoolReader.this , query);
-            mDialogSearchView = new DialogSearchView(CoolReader.this, handler);
-            mDialogSearchView.show();
+			doSearch(query);
             return true;
 		}
 		return false;

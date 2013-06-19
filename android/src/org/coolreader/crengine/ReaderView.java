@@ -6445,6 +6445,11 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 	        {
 	            mActivity.onSearchRequested();
 	        }
+	        
+			@Override
+			public void searchContent(String query) {
+				mActivity.doSearch(query);
+			}
 
 	        @Override
 	        public void rotationScreen(int i)
@@ -6626,7 +6631,6 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
             public boolean canChangeFontFace() {
             	return true;
             }
-
 	    };
 
         
