@@ -132,6 +132,9 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
     private int[] fontSizes = new int[] { 7, 12, 17, 22, 27, 30, 33, 36, 38, 40 };
     private int mPageRenderCount = 0;
     
+    private int mMoveDistance = 0;
+    private boolean mIsPageDown = false;
+
     public enum ReaderCommand
     {
     	DCMD_NONE(0),
@@ -1426,9 +1429,26 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		            selectionModeActive = false;
 		            return true;
 		        }
-		        return performAction(shortTapAction, true);
+
+		        boolean checkForLinks = true;
+		        if (mMoveDistance > 10) {
+		            Log.v(TAG, "mMoveDistance is: "+mMoveDistance);
+		            checkForLinks = false;
+
+		            shortTapAction = ReaderAction.NONE;
+		            if (mIsPageDown) {
+		                shortTapAction = ReaderAction.PAGE_DOWN;
+		            } else {
+		                shortTapAction = ReaderAction.PAGE_UP;
+		            }
+		        }
+
+		        return performAction(shortTapAction, checkForLinks);
 		    }
 		    else if (event.getAction() == MotionEvent.ACTION_DOWN) {
+		        // clear the move distance
+		        mMoveDistance = 0;
+
 		        start_x = x;
 		        start_y = y;
 		        width = getWidth();
@@ -1458,19 +1478,21 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		        state = STATE_DOWN_1;
 
 		        return true;
-
 		    } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
 		        int dx = x - start_x;
 		        int dy = y - start_y;
-		        int adx = dx > 0 ? dx : -dx;
-		        int ady = dy > 0 ? dy : -dy;
-		        int distance = adx + ady;
-		        int dragThreshold = mActivity.getPalmTipPixels();
-
-		        if (distance < dragThreshold) {
-		            return true;
+		        mMoveDistance = Math.abs(dx);
+		        mIsPageDown = (dx < 0);
+		        if (Math.abs(dy) > Math.abs(dx)) {
+		            mMoveDistance = Math.abs(dy);
+		            mIsPageDown = (dy < 0);
 		        }
 
+		        int dragThreshold = mActivity.getPalmTipPixels();
+		        if (mMoveDistance < dragThreshold) {
+		            return true;
+		        }
+/*
 		        boolean isPageMode = mSettings.getInt(PROP_PAGE_VIEW_MODE, 1) == 1;
 		        int dir = isPageMode ? x - start_x : y - start_y;
 		        if (pageFlipAnimationSpeedMs == 0 || DeviceInfo.EINK_SCREEN) {
@@ -1480,6 +1502,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		        updateAnimation(x, y);
 		        state = STATE_FLIPPING;
 		        return true;
+*/
 		    }
 		    else if (event.getAction() == MotionEvent.ACTION_OUTSIDE) {
 		        return unexpectedEvent();
