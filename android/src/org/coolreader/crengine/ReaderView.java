@@ -1426,7 +1426,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		            selectionModeActive = false;
 		            return true;
 		        }
-		        return performAction(shortTapAction, false);
+		        return performAction(shortTapAction, true);
 		    }
 		    else if (event.getAction() == MotionEvent.ACTION_DOWN) {
 		        start_x = x;
@@ -1458,6 +1458,7 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		        state = STATE_DOWN_1;
 
 		        return true;
+
 		    } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
 		        int dx = x - start_x;
 		        int dy = y - start_y;
