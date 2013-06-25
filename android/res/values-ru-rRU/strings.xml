@@ -515,7 +515,7 @@
     <string name="cannot_read_server">Невозможно прочесть с сервера</string>
     <string name="error_book_info">Ошибка чтения информации о книге</string>
     <string name="cannot_find_plugin">Плагин не найден</string>
-    <string name="no_opds_found">ODPS библиотека не найдена</string>
+    <string name="no_opds_found">ODPS-библиотека не найдена</string>
     <string name="wrong_uri">Неверный URI</string>
     <string name="error_download_book">Ошибка при загрузке книги:</string>
     <string name="cannot_create_download_dir">Невозможно создать директорию загрузки</string>
