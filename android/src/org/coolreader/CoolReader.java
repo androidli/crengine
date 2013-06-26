@@ -990,9 +990,11 @@ public class CoolReader extends BaseActivity
 	}
 	
 	private void runInBrowser(final Runnable task) {
+	    CoolReader.this.finish();
 		waitForCRDBService(new Runnable() {
 			@Override
 			public void run() {
+			    /*
 				if (mBrowserFrame != null) {
 					task.run();
 					setCurrentFrame(mBrowserFrame);
@@ -1069,6 +1071,7 @@ public class CoolReader extends BaseActivity
 //					if (getIntent() == null)
 //						mBrowser.showDirectory(Services.getScanner().getDownloadDirectory(), null);
 				}
+				*/
 			}
 		});
 		
