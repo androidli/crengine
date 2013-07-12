@@ -488,9 +488,16 @@ public class ReaderView extends SurfaceView implements android.view.SurfaceHolde
 		boolean tracked = isTracked(event);
 //		if ( keyCode!=KeyEvent.KEYCODE_BACK )
 //			backKeyDownHere = false;
-
-		if ( keyCode==KeyEvent.KEYCODE_BACK && !tracked )
-			return true;
+		
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (!tracked) {
+                return true;
+            }
+            else if (ttsControl != null && ttsControl.isSpeaking()) {
+                ttsControl.stop();
+                return true;
+            }
+        }
 		//backKeyDownHere = false;
 		
 		// apply orientation
